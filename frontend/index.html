@@ -109,9 +109,12 @@ body.is-desktop .desktop-wide{grid-column:1/-1;}
 .wc-tag.poison{background:rgba(60,200,80,0.12);color:#70d880;border-color:rgba(60,200,80,0.3);}
 
 /* DECK CARDS */
-.deck-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r2);padding:16px;margin-bottom:12px;position:relative;overflow:hidden;cursor:pointer;touch-action:manipulation;transition:border-color 0.15s;}
+.deck-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r2);padding:16px;margin-bottom:12px;position:relative;overflow:hidden;cursor:pointer;touch-action:manipulation;transition:border-color 0.15s,box-shadow 0.15s;}
 .deck-card:active{opacity:0.85;}
-.deck-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 0%,var(--gold) 40%,transparent 100%);opacity:0.5;}
+.deck-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 0%,var(--gold) 40%,transparent 100%);opacity:0.5;z-index:1;}
+/* Art crop background — image injected via JS as inline style */
+.deck-card-art{position:absolute;top:0;right:0;width:58%;height:100%;background-size:cover;background-position:center top;background-repeat:no-repeat;pointer-events:none;opacity:0.18;mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,0.6) 30%,rgba(0,0,0,1) 100%);-webkit-mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,0.6) 30%,rgba(0,0,0,1) 100%);transition:opacity 0.3s;}.deck-card:hover .deck-card-art{opacity:0.28;}
+.deck-card-content{position:relative;z-index:1;}
 .deck-name{font-family:'Cinzel',serif;font-size:1rem;font-weight:700;color:var(--gold2);}
 .deck-cmd{font-size:0.85rem;color:var(--t2);font-style:italic;margin-top:2px;}
 .deck-tags{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 8px;}
@@ -770,8 +773,24 @@ function toast(msg,type='success'){
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 function pipsHtml(colors=''){
-  const u=(colors||'').toUpperCase();
-  return['W','U','B','R','G'].filter(c=>u.includes(c)).map(c=>`<span class="pip pip-${c}">${c}</span>`).join('')||(u.includes('C')?`<span class="pip pip-C">C</span>`:'');
+  // Extract mana letters from the stored color identity string.
+  // Format is either "Azorius (WU)", "Mono-White", "5-Color (WUBRG)", "Colorless" etc.
+  // Always extract letters from inside parentheses first; fall back to mono-color names.
+  const s = colors || '';
+  const bracketMatch = s.match(/\(([WUBRG]+)\)/);
+  if (bracketMatch) {
+    return [...bracketMatch[1]].map(c=>`<span class="pip pip-${c}">${c}</span>`).join('');
+  }
+  // Mono-color and Colorless fallbacks
+  const mono = {'MONO-WHITE':'W','MONO-BLUE':'U','MONO-BLACK':'B','MONO-RED':'R','MONO-GREEN':'G'};
+  const key = s.toUpperCase().replace(/-/g,'_').replace('_','_');
+  const monoKey = s.toUpperCase();
+  for(const [k,v] of Object.entries(mono)){if(monoKey.includes(k))return`<span class="pip pip-${v}">${v}</span>`;}
+  if(monoKey.includes('COLORLESS'))return`<span class="pip pip-C">C</span>`;
+  // Last resort: scan for bare mana letters only (single-char uppercase W/U/B/R/G tokens)
+  const bare=['W','U','B','R','G'].filter(c=>new RegExp('\\b'+c+'\\b').test(s.toUpperCase()));
+  if(bare.length)return bare.map(c=>`<span class="pip pip-${c}">${c}</span>`).join('');
+  return'';
 }
 function wcClass(wc=''){
   const w=wc.toLowerCase();
@@ -825,29 +844,59 @@ async function loadDecksPage(){
     const ds={};(stats.deck_stats||[]).forEach(d=>ds[d.id]=d);
     const el=document.getElementById('decks-list');
     if(!decks.length){el.innerHTML=`<div class="empty-state desktop-wide"><span class="empty-icon">🃏</span>No decks yet.</div>`;return;}
+    // Render cards immediately, then backfill art images asynchronously
     el.innerHTML=decks.map(d=>{
       const st=ds[d.id]||{},wp=st.win_pct||0;
       const bc=wp>=50?'var(--win)':wp>=30?'var(--gold)':'var(--loss)';
-      return`<div class="deck-card" onclick="editDeck(${d.id})">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-          <div><div class="deck-name">${d.name}</div><div class="deck-cmd">${d.commander}${d.partner?' + '+d.partner:''}</div></div>
-          <div class="pips" style="margin-top:2px;">${pipsHtml(d.color_identity)}</div>
-        </div>
-        <div class="deck-tags">
-          <span class="tag tag-arch">${d.archetype}</span>
-          <span class="tag ${d.status==='Active'?'tag-active':'tag-retired'}">${d.status}</span>
-          ${d.power_level?`<span class="tag tag-pl">PL ${d.power_level}/5</span>`:''}
-        </div>
-        ${st.games_played?`<div class="win-bar-bg"><div class="win-bar-fill" style="width:${wp}%;background:${bc}"></div></div>`:''}
-        <div class="deck-stats-strip">
-          <div><span>${st.games_played||0}</span> games</div>
-          <div><span>${st.wins||0}</span> wins</div>
-          <div><span>${wp||0}%</span> win rate</div>
-          ${st.last_played?`<div style="margin-left:auto;color:var(--t3)">${st.last_played}</div>`:''}
+      return`<div class="deck-card" id="dc-${d.id}" onclick="editDeck(${d.id})">
+        <div class="deck-card-art" id="dc-art-${d.id}"></div>
+        <div class="deck-card-content">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+            <div><div class="deck-name">${d.name}</div><div class="deck-cmd">${d.commander}${d.partner?' + '+d.partner:''}</div></div>
+            <div class="pips" style="margin-top:2px;">${pipsHtml(d.color_identity)}</div>
+          </div>
+          <div class="deck-tags">
+            <span class="tag tag-arch">${d.archetype}</span>
+            <span class="tag ${d.status==='Active'?'tag-active':'tag-retired'}">${d.status}</span>
+            ${d.power_level?`<span class="tag tag-pl">PL ${d.power_level}/5</span>`:''}
+          </div>
+          ${st.games_played?`<div class="win-bar-bg"><div class="win-bar-fill" style="width:${wp}%;background:${bc}"></div></div>`:''}
+          <div class="deck-stats-strip">
+            <div><span>${st.games_played||0}</span> games</div>
+            <div><span>${st.wins||0}</span> wins</div>
+            <div><span>${wp||0}%</span> win rate</div>
+            ${st.last_played?`<div style="margin-left:auto;color:var(--t3)">${st.last_played}</div>`:''}
+          </div>
         </div>
       </div>`;
     }).join('');
+    // Fetch art crops for each deck asynchronously — non-blocking
+    decks.forEach(d=>loadDeckArt(d));
   }catch(e){toast(e.message,'error');}
+}
+
+// Fetch the art_crop URL from Scryfall for a deck's commander and inject it
+const artCache = new Map();
+async function loadDeckArt(deck){
+  const artEl = document.getElementById('dc-art-'+deck.id);
+  if(!artEl)return;
+  const name = deck.commander;
+  if(!name)return;
+  if(artCache.has(name)){
+    const url=artCache.get(name);
+    if(url)artEl.style.backgroundImage=`url(${url})`;
+    return;
+  }
+  try{
+    // Use getCard which already caches — reuse if already fetched for AC
+    const card = await getCard(name);
+    // Prefer art_crop from image_uris; handle double-faced cards via card_faces
+    let url = card?.image_uris?.art_crop
+      || card?.card_faces?.[0]?.image_uris?.art_crop
+      || null;
+    artCache.set(name, url);
+    if(url)artEl.style.backgroundImage=`url(${url})`;
+  }catch{}
 }
 
 function editDeck(id){
