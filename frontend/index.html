@@ -884,9 +884,22 @@ async function api(path, method='GET', body=null) {
   if (authToken) headers['Authorization'] = 'Bearer ' + authToken;
   const opts = {method, headers};
   if (body) opts.body = JSON.stringify(body);
-  const r = await fetch(API + path, opts);
-  if (r.status === 401) { logout(); return; }
-  if (!r.ok) { const e = await r.json().catch(()=>({detail:'Error'})); throw new Error(e.detail||'Error'); }
+  let r;
+  try {
+    r = await fetch(API + path, opts);
+  } catch(networkErr) {
+    throw new Error('Network error — is the server running?');
+  }
+  if (r.status === 401) {
+    // Token invalid or expired — clear session and show login
+    // Guard against recursive logout calls
+    if (authToken) logout();
+    throw new Error('Session expired — please log in again');
+  }
+  if (!r.ok) {
+    const e = await r.json().catch(()=>({detail:'Error'}));
+    throw new Error(e.detail || 'Error');
+  }
   return r.status === 204 ? null : r.json();
 }
 
@@ -925,7 +938,7 @@ async function authSubmit() {
     const json = await data.json();
     if (!data.ok) throw new Error(json.detail || 'Error');
     saveAuth(json.token, {username: json.username, is_admin: json.is_admin});
-    onLoggedIn();
+    onLoggedIn(true);  // token is brand new, no need to re-verify
   } catch(e) {
     errEl.textContent = e.message;
     errEl.classList.add('visible');
@@ -935,7 +948,20 @@ async function authSubmit() {
   }
 }
 
-function onLoggedIn() {
+async function onLoggedIn(skipVerify=false) {
+  // If restoring a stored session, verify the token is still valid first.
+  // This catches stale tokens from server restarts with a new JWT_SECRET.
+  if (!skipVerify) {
+    try {
+      const me = await api('/api/auth/me');
+      // Update stored user data in case anything changed
+      authUser = {username: me.username, is_admin: me.is_admin};
+      saveAuth(authToken, authUser);
+    } catch(e) {
+      // Token rejected — logout() was already called by api(), just return
+      return;
+    }
+  }
   document.getElementById('auth-screen').classList.add('hidden');
   // Update user badge
   const u = authUser;
@@ -1511,12 +1537,12 @@ async function adminDeleteUser(uid, username) {
 // ── INIT ──────────────────────────────────────────────────────────────────────
 buildArchSelect('dm-arch-wrap','dm-arch-custom-wrap','dm-arch-custom');
 
-// Check for existing valid session
+// Check for existing valid session — verify token against server first
 if (authToken && authUser) {
-  onLoggedIn();
+  onLoggedIn(false);  // async — will verify token, show app or fall back to login
 } else {
   clearAuth();
-  // Auth screen is visible by default — nothing else to do
+  // Auth screen is already visible by default
 }
 
 </script>

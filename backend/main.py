@@ -243,10 +243,11 @@ def register(body: AuthIn):
     with get_db() as c:
         if c.execute("SELECT id FROM users WHERE username=?", (u,)).fetchone():
             raise HTTPException(409, "Username already taken")
-        row = c.execute("INSERT INTO users (username,pw_hash) VALUES (?,?) RETURNING id",
-                        (u, _hash(body.password))).fetchone()
+        cur = c.execute("INSERT INTO users (username,pw_hash) VALUES (?,?)",
+                        (u, _hash(body.password)))
         c.commit()
-    return {"token": make_token(row["id"], u, False), "username": u, "is_admin": False}
+        user_id = cur.lastrowid
+    return {"token": make_token(user_id, u, False), "username": u, "is_admin": False}
 
 @app.post("/api/auth/login")
 def login(body: AuthIn):
