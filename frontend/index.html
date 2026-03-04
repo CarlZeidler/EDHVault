@@ -8,675 +8,337 @@
 <meta name="theme-color" content="#0d0d14">
 <title>EDH Vault</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Nunito:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 /* ─── RESET + TOKENS ─────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
 :root {
-  /* Surface */
-  --bg:       #0d0d14;
-  --s1:       #13131e;
-  --s2:       #1a1a28;
-  --s3:       #222233;
-  --s4:       #2c2c42;
-  /* Borders */
-  --b1:       #2a2a3d;
-  --b2:       #3a3a52;
-  /* Text */
-  --t1:       #e8e8f0;
-  --t2:       #9090b0;
-  --t3:       #55556a;
-  /* Brand */
-  --gold:     #d4a847;
-  --gold2:    #f0c860;
-  --gold-bg:  rgba(212,168,71,0.12);
-  --gold-glow:rgba(212,168,71,0.25);
-  /* Status */
-  --win:      #34d474;
-  --win-bg:   rgba(52,212,116,0.12);
-  --loss:     #f05050;
-  --loss-bg:  rgba(240,80,80,0.12);
-  /* Mana */
-  --mW: #f0e8c0; --mU: #4080c8; --mB: #9060c8;
-  --mR: #d04840; --mG: #30a060; --mC: #8888a8;
-  /* Layout */
-  --nav-h:    64px;
-  --safe-b:   env(safe-area-inset-bottom, 0px);
-  --r:        12px;
-  --r2:       18px;
-  --r3:       24px;
+  --bg:#0d0d14; --s1:#13131e; --s2:#1a1a28; --s3:#222233; --s4:#2c2c42;
+  --b1:#2a2a3d; --b2:#3a3a52;
+  --t1:#e8e8f0; --t2:#9090b0; --t3:#55556a;
+  --gold:#d4a847; --gold2:#f0c860; --gold-bg:rgba(212,168,71,0.12); --gold-glow:rgba(212,168,71,0.25);
+  --win:#34d474; --win-bg:rgba(52,212,116,0.12);
+  --loss:#f05050; --loss-bg:rgba(240,80,80,0.12);
+  --mW:#f0e8c0; --mU:#4080c8; --mB:#9060c8; --mR:#d04840; --mG:#30a060; --mC:#8888a8;
+  --nav-h:64px; --safe-b:env(safe-area-inset-bottom,0px);
+  --r:12px; --r2:18px; --r3:24px;
+  /* Desktop sidebar */
+  --sidebar-w: 240px;
+}
+html, body { height:100%; }
+body { background:var(--bg); color:var(--t1); font-family:'Nunito',sans-serif; font-size:15px; line-height:1.5; overscroll-behavior:none; overflow:hidden; }
+
+/* ══════════════════════════════════════════════════════
+   RESPONSIVE LAYOUT: mobile = bottom-nav, desktop = sidebar
+══════════════════════════════════════════════════════ */
+
+/* ── Mobile shell ─────────────────────────────────────── */
+#app { display:flex; flex-direction:column; height:100dvh; height:100vh; }
+#content { flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; padding-bottom:calc(var(--nav-h) + var(--safe-b) + 16px); }
+
+/* ── Desktop shell ────────────────────────────────────── */
+@media (min-width:769px) {
+  body { overflow:auto; }
+  #app { flex-direction:row; height:100vh; overflow:hidden; }
+  #content { padding-bottom:24px; padding-left:calc(var(--sidebar-w) + 24px); padding-right:24px; padding-top:0; overflow-y:auto; flex:1; }
+  .page { padding-top:32px !important; max-width:900px; }
 }
 
-html, body { height: 100%; overflow: hidden; }
-
-body {
-  background: var(--bg);
-  color: var(--t1);
-  font-family: 'Nunito', sans-serif;
-  font-size: 15px;
-  line-height: 1.5;
-  overscroll-behavior: none;
-}
-
-/* ─── LAYOUT SHELL ────────────────────────────────────────────────────────── */
-#app {
-  display: flex;
-  flex-direction: column;
-  height: 100dvh;
-  height: 100vh;
-}
-
-/* ─── SCROLLABLE CONTENT ─────────────────────────────────────────────────── */
-#content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(var(--nav-h) + var(--safe-b) + 16px);
-}
-
-/* ─── BOTTOM NAV ──────────────────────────────────────────────────────────── */
+/* ── Bottom nav (mobile only) ─────────────────────────── */
 #bottom-nav {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  height: calc(var(--nav-h) + var(--safe-b));
-  padding-bottom: var(--safe-b);
-  background: rgba(13,13,20,0.96);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid var(--b1);
-  display: flex;
-  align-items: stretch;
-  z-index: 100;
+  position:fixed; bottom:0; left:0; right:0;
+  height:calc(var(--nav-h) + var(--safe-b)); padding-bottom:var(--safe-b);
+  background:rgba(13,13,20,0.96); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  border-top:1px solid var(--b1);
+  display:flex; align-items:stretch; z-index:100;
+}
+@media (min-width:769px) { #bottom-nav { display:none; } }
+
+/* ── Sidebar (desktop only) ───────────────────────────── */
+#sidebar {
+  display:none;
+  position:fixed; left:0; top:0; bottom:0;
+  width:var(--sidebar-w);
+  background:var(--s1);
+  border-right:1px solid var(--b1);
+  flex-direction:column;
+  z-index:100;
+  padding:28px 0 24px;
+}
+@media (min-width:769px) { #sidebar { display:flex; } }
+
+.sidebar-brand {
+  display:flex; align-items:center; gap:10px;
+  padding:0 20px 28px;
+  font-family:'Cinzel',serif; font-size:1.1rem; font-weight:700;
+  color:var(--gold2); letter-spacing:0.06em;
+  border-bottom:1px solid var(--b1); margin-bottom:16px;
+}
+.sidebar-brand .brand-icon { font-size:1.3rem; filter:drop-shadow(0 0 6px var(--gold-glow)); }
+
+.sidebar-nav { display:flex; flex-direction:column; gap:2px; padding:0 12px; flex:1; }
+.sidebar-item {
+  display:flex; align-items:center; gap:12px;
+  padding:11px 14px; border-radius:var(--r);
+  border:none; background:none; cursor:pointer;
+  font-family:'Cinzel',serif; font-size:0.78rem; font-weight:600;
+  letter-spacing:0.06em; text-transform:uppercase; color:var(--t3);
+  transition:background 0.15s, color 0.15s; text-align:left; width:100%;
+}
+.sidebar-item:hover { background:var(--s2); color:var(--t2); }
+.sidebar-item.active { background:var(--gold-bg); color:var(--gold2); }
+.sidebar-item .si-icon { font-size:1.1rem; width:22px; text-align:center; }
+.sidebar-item .si-label { flex:1; }
+
+.sidebar-log-btn {
+  margin:16px 12px 0;
+  padding:13px 14px;
+  background:linear-gradient(135deg,#c09030,var(--gold2));
+  color:#1a1200; border:none; border-radius:var(--r);
+  font-family:'Cinzel',serif; font-size:0.8rem; font-weight:700;
+  letter-spacing:0.06em; text-transform:uppercase; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  box-shadow:0 2px 12px rgba(212,168,71,0.3); transition:opacity 0.15s, transform 0.15s;
+}
+.sidebar-log-btn:hover { transform:translateY(-1px); box-shadow:0 4px 18px rgba(212,168,71,0.4); }
+
+/* ── Shared nav item style (mobile bottom bar) ─────────── */
+.nav-item { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; border:none; background:none; cursor:pointer; padding:8px 4px; color:var(--t3); transition:color 0.15s; touch-action:manipulation; min-width:0; }
+.nav-item.active { color:var(--gold2); }
+.nav-item:active { opacity:0.7; }
+.nav-icon { font-size:1.35rem; line-height:1; transition:transform 0.15s; }
+.nav-item.active .nav-icon { transform:scale(1.1); }
+.nav-label { font-size:0.65rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; font-family:'Cinzel',serif; white-space:nowrap; }
+.nav-item.nav-log { flex:1.4; }
+.nav-log-inner { width:52px; height:52px; background:linear-gradient(135deg,#b8922a,var(--gold2)); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.5rem; box-shadow:0 4px 20px var(--gold-glow),0 2px 8px rgba(0,0,0,0.4); transition:transform 0.15s; margin-bottom:-4px; }
+.nav-item.nav-log:active .nav-log-inner { transform:scale(0.93); }
+.nav-log-label { font-size:0.6rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; font-family:'Cinzel',serif; color:var(--t3); margin-top:2px; }
+.nav-item.nav-log.active .nav-log-label { color:var(--gold2); }
+
+/* ── Pages ────────────────────────────────────────────── */
+.page { display:none; padding:16px 16px 0; animation:slideUp 0.22s ease; }
+.page.active { display:block; }
+@keyframes slideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+.page-header { display:flex; align-items:center; justify-content:space-between; padding:8px 0 16px; flex-wrap:wrap; gap:10px; }
+.page-title { font-family:'Cinzel',serif; font-size:1.3rem; font-weight:700; color:var(--gold2); letter-spacing:0.04em; }
+@media (min-width:769px) {
+  .page-title { font-size:1.6rem; }
+  .page-header { padding:0 0 24px; }
 }
 
-.nav-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  padding: 8px 4px;
-  color: var(--t3);
-  transition: color 0.15s;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  min-width: 0;
-}
-.nav-item.active { color: var(--gold2); }
-.nav-item:active { opacity: 0.7; }
+/* ── Typography ───────────────────────────────────────── */
+.label-sm { font-family:'Cinzel',serif; font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--t3); }
 
-.nav-icon {
-  font-size: 1.35rem;
-  line-height: 1;
-  transition: transform 0.15s;
-}
-.nav-item.active .nav-icon { transform: scale(1.1); }
-.nav-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  font-family: 'Cinzel', serif;
-  white-space: nowrap;
-}
+/* ── Cards ────────────────────────────────────────────── */
+.card { background:var(--s1); border:1px solid var(--b1); border-radius:var(--r2); overflow:hidden; }
+.card+.card, .card+.section-gap, .section-gap+.card { margin-top:14px; }
+.section-gap { margin-top:14px; }
+.card-head { padding:14px 16px 12px; border-bottom:1px solid var(--b1); display:flex; align-items:center; justify-content:space-between; }
+.card-head h2 { font-family:'Cinzel',serif; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--t2); }
 
-/* Center FAB-style log button */
-.nav-item.nav-log {
-  flex: 1.4;
-}
-.nav-log-inner {
-  width: 52px; height: 52px;
-  background: linear-gradient(135deg, #b8922a, var(--gold2));
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.5rem;
-  box-shadow: 0 4px 20px var(--gold-glow), 0 2px 8px rgba(0,0,0,0.4);
-  transition: transform 0.15s, box-shadow 0.15s;
-  margin-bottom: -4px;
-}
-.nav-item.nav-log:active .nav-log-inner { transform: scale(0.93); }
-.nav-log-label {
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  font-family: 'Cinzel', serif;
-  color: var(--t3);
-  margin-top: 2px;
-}
-.nav-item.nav-log.active .nav-log-label { color: var(--gold2); }
+/* ── Stat pills ───────────────────────────────────────── */
+.stat-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+.stat-pill { background:var(--s1); border:1px solid var(--b1); border-radius:var(--r2); padding:14px 12px; text-align:center; position:relative; overflow:hidden; }
+.stat-pill::after { content:''; position:absolute; bottom:0; left:16px; right:16px; height:2px; border-radius:2px 2px 0 0; background:var(--gold); opacity:0.4; }
+.stat-num { font-family:'Cinzel',serif; font-size:1.7rem; font-weight:700; color:var(--gold2); line-height:1; display:block; }
+.stat-num.green { color:var(--win); }
+.stat-lbl { font-size:0.62rem; color:var(--t3); text-transform:uppercase; letter-spacing:0.08em; margin-top:4px; font-family:'Cinzel',serif; }
+@media (min-width:769px) { .stat-num { font-size:2.2rem; } .stat-lbl { font-size:0.72rem; } }
 
-/* ─── PAGES ───────────────────────────────────────────────────────────────── */
-.page { display: none; padding: 16px 16px 0; animation: slideUp 0.22s ease; }
-.page.active { display: block; }
-@keyframes slideUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+/* ── Game rows ────────────────────────────────────────── */
+.game-item { padding:14px 16px; display:flex; gap:12px; align-items:flex-start; border-bottom:1px solid var(--b1); }
+.game-item:last-child { border-bottom:none; }
+.outcome-dot { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:800; flex-shrink:0; margin-top:1px; font-family:'Cinzel',serif; }
+.outcome-dot.won  { background:var(--win-bg);  color:var(--win);  border:1.5px solid rgba(52,212,116,0.3); }
+.outcome-dot.lost { background:var(--loss-bg); color:var(--loss); border:1.5px solid rgba(240,80,80,0.3); }
+.game-body { flex:1; min-width:0; }
+.game-deck-name { font-weight:700; font-size:0.95rem; color:var(--t1); }
+.game-meta { font-size:0.78rem; color:var(--t3); margin-top:1px; }
+.game-opps { font-size:0.82rem; color:var(--t2); margin-top:3px; font-style:italic; }
+.game-result { font-size:0.78rem; color:var(--t2); margin-top:3px; }
+.game-result strong { color:var(--t1); font-weight:700; }
+.wc-tag { font-size:0.65rem; padding:3px 8px; border-radius:20px; font-weight:700; white-space:nowrap; flex-shrink:0; margin-top:2px; font-family:'Cinzel',serif; letter-spacing:0.03em; background:var(--s3); color:var(--t2); border:1px solid var(--b1); align-self:flex-start; }
+.wc-tag.combo  { background:rgba(138,80,255,0.15); color:#b080ff; border-color:rgba(138,80,255,0.3); }
+.wc-tag.combat { background:rgba(240,80,80,0.1);   color:#f07070; border-color:rgba(240,80,80,0.3); }
+.wc-tag.drain  { background:rgba(240,140,60,0.12); color:#f0a060; border-color:rgba(240,140,60,0.3); }
+.wc-tag.mill   { background:rgba(60,130,240,0.12); color:#70a8ff; border-color:rgba(60,130,240,0.3); }
+.wc-tag.poison { background:rgba(60,200,80,0.12);  color:#70d880; border-color:rgba(60,200,80,0.3); }
 
-/* ─── PAGE HEADER ─────────────────────────────────────────────────────────── */
-.page-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 0 16px;
-}
-.page-title {
-  font-family: 'Cinzel', serif;
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--gold2);
-  letter-spacing: 0.04em;
-}
+/* ── Deck cards ───────────────────────────────────────── */
+.deck-card { background:var(--s1); border:1px solid var(--b1); border-radius:var(--r2); padding:16px; margin-bottom:12px; transition:border-color 0.15s; position:relative; overflow:hidden; cursor:pointer; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+.deck-card:active { opacity:0.85; }
+.deck-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent 0%,var(--gold) 40%,transparent 100%); opacity:0.5; }
+@media (min-width:769px) { .deck-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; } .deck-card { margin-bottom:0; } .deck-card:hover { border-color:rgba(212,168,71,0.4); transform:translateY(-2px); box-shadow:0 6px 24px rgba(0,0,0,0.4); } }
+.deck-name { font-family:'Cinzel',serif; font-size:1rem; font-weight:700; color:var(--gold2); }
+.deck-cmd  { font-size:0.85rem; color:var(--t2); font-style:italic; margin-top:2px; }
+.deck-tags { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 8px; }
+.tag { font-size:0.68rem; font-weight:700; padding:3px 9px; border-radius:20px; font-family:'Cinzel',serif; letter-spacing:0.04em; }
+.tag-arch   { background:var(--gold-bg); color:var(--gold); border:1px solid rgba(212,168,71,0.2); }
+.tag-active { background:var(--win-bg);  color:var(--win);  border:1px solid rgba(52,212,116,0.2); }
+.tag-retired{ background:var(--s3); color:var(--t3); border:1px solid var(--b1); }
+.tag-pl     { background:var(--s3); color:var(--t2); border:1px solid var(--b1); }
+.deck-stats-strip { display:flex; gap:18px; padding-top:10px; border-top:1px solid var(--b1); font-size:0.78rem; color:var(--t3); }
+.deck-stats-strip span { color:var(--t1); font-weight:700; margin-right:2px; }
+.win-bar-bg { background:var(--s3); border-radius:20px; height:4px; margin:8px 0; overflow:hidden; }
+.win-bar-fill { height:100%; border-radius:20px; transition:width 0.6s ease; }
 
-/* ─── TYPOGRAPHY ──────────────────────────────────────────────────────────── */
-.label-sm {
-  font-family: 'Cinzel', serif;
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--t3);
-}
+/* ── Mana pips ────────────────────────────────────────── */
+.pips { display:flex; gap:4px; align-items:center; }
+.pip { width:20px; height:20px; border-radius:50%; font-size:0.6rem; font-weight:800; display:inline-flex; align-items:center; justify-content:center; border:1.5px solid rgba(0,0,0,0.3); font-family:'Cinzel',serif; color:rgba(255,255,255,0.9); text-shadow:0 1px 2px rgba(0,0,0,0.6); flex-shrink:0; }
+.pip-W{background:#d8d0a8;color:#5a5030;} .pip-U{background:var(--mU);} .pip-B{background:var(--mB);} .pip-R{background:var(--mR);} .pip-G{background:var(--mG);} .pip-C{background:var(--mC);}
 
-/* ─── CARDS ───────────────────────────────────────────────────────────────── */
-.card {
-  background: var(--s1);
-  border: 1px solid var(--b1);
-  border-radius: var(--r2);
-  overflow: hidden;
-}
-.card + .card, .card + .section-gap, .section-gap + .card { margin-top: 14px; }
-.section-gap { margin-top: 14px; }
+/* ── Buttons ──────────────────────────────────────────── */
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:11px 18px; border:none; border-radius:var(--r); font-family:'Cinzel',serif; font-size:0.75rem; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; cursor:pointer; touch-action:manipulation; transition:opacity 0.12s,transform 0.12s; -webkit-tap-highlight-color:transparent; white-space:nowrap; }
+.btn:active { opacity:0.8; transform:scale(0.97); }
+.btn-gold { background:linear-gradient(135deg,#c09030,var(--gold2)); color:#1a1200; box-shadow:0 2px 12px rgba(212,168,71,0.3); font-weight:700; }
+.btn-ghost { background:var(--s2); color:var(--t2); border:1px solid var(--b1); }
+.btn-ghost:active { background:var(--s3); }
+.btn-danger { background:rgba(200,40,40,0.15); color:var(--loss); border:1px solid rgba(200,40,40,0.3); }
+.btn-sm { padding:8px 14px; font-size:0.68rem; }
+.btn-icon { padding:9px; width:38px; height:38px; border-radius:50%; }
+.btn-full { width:100%; padding:14px; font-size:0.85rem; }
+@media (min-width:769px) { .btn-gold:hover { transform:translateY(-1px); box-shadow:0 4px 18px rgba(212,168,71,0.4); } }
 
-.card-head {
-  padding: 14px 16px 12px;
-  border-bottom: 1px solid var(--b1);
-  display: flex; align-items: center; justify-content: space-between;
-}
-.card-head h2 {
-  font-family: 'Cinzel', serif;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--t2);
-}
+/* ── Outcome toggle ───────────────────────────────────── */
+.outcome-toggle { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.outcome-btn { padding:14px; border-radius:var(--r); border:2px solid var(--b1); background:var(--s2); color:var(--t3); font-family:'Cinzel',serif; font-size:0.85rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; cursor:pointer; touch-action:manipulation; transition:all 0.15s; text-align:center; -webkit-tap-highlight-color:transparent; }
+.outcome-btn .outcome-icon { font-size:1.4rem; display:block; margin-bottom:4px; }
+.outcome-btn.sel-win  { border-color:var(--win);  background:var(--win-bg);  color:var(--win); }
+.outcome-btn.sel-loss { border-color:var(--loss); background:var(--loss-bg); color:var(--loss); }
 
-/* ─── STAT PILLS ──────────────────────────────────────────────────────────── */
-.stat-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 14px;
-}
-.stat-pill {
-  background: var(--s1);
-  border: 1px solid var(--b1);
-  border-radius: var(--r2);
-  padding: 14px 12px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-.stat-pill::after {
-  content: '';
-  position: absolute; bottom: 0; left: 16px; right: 16px; height: 2px;
-  border-radius: 2px 2px 0 0;
-  background: var(--gold);
-  opacity: 0.4;
-}
-.stat-num {
-  font-family: 'Cinzel', serif;
-  font-size: 1.7rem;
-  font-weight: 700;
-  color: var(--gold2);
-  line-height: 1;
-  display: block;
-}
-.stat-num.green { color: var(--win); }
-.stat-lbl { font-size: 0.62rem; color: var(--t3); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; font-family: 'Cinzel', serif; }
+/* ── Forms ────────────────────────────────────────────── */
+.field { display:flex; flex-direction:column; gap:6px; }
+label { font-family:'Cinzel',serif; font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--t3); }
+input, select, textarea { background:var(--s2); border:1.5px solid var(--b1); border-radius:var(--r); color:var(--t1); font-family:'Nunito',sans-serif; font-size:1rem; padding:12px 14px; width:100%; transition:border-color 0.15s,box-shadow 0.15s; appearance:none; -webkit-appearance:none; }
+input:focus, select:focus, textarea:focus { outline:none; border-color:rgba(212,168,71,0.5); box-shadow:0 0 0 3px rgba(212,168,71,0.08); }
+input::placeholder, textarea::placeholder { color:var(--t3); }
+select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23666688' d='M5 6L0 0h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:36px; }
+textarea { resize:vertical; min-height:80px; line-height:1.5; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.form-stack { display:flex; flex-direction:column; gap:14px; }
+.section-label { font-family:'Cinzel',serif; font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:var(--t3); padding:4px 0 2px; border-bottom:1px solid var(--b1); }
 
-/* ─── GAME ROWS ───────────────────────────────────────────────────────────── */
-.game-item {
-  padding: 14px 16px;
-  display: flex; gap: 12px; align-items: flex-start;
-  border-bottom: 1px solid var(--b1);
-  touch-action: manipulation;
-}
-.game-item:last-child { border-bottom: none; }
+/* ── Partner row: hidden by default ──────────────────── */
+.partner-row { display:none; }
+.partner-row.visible { display:flex; flex-direction:column; gap:6px; }
+.partner-badge { font-size:0.65rem; padding:2px 8px; border-radius:20px; font-family:'Cinzel',serif; font-weight:700; letter-spacing:0.06em; display:inline-flex; align-items:center; gap:4px; }
+.pb-partner   { background:rgba(60,130,240,0.15); color:#70a8ff; border:1px solid rgba(60,130,240,0.3); }
+.pb-pw        { background:rgba(138,80,255,0.15); color:#b080ff; border:1px solid rgba(138,80,255,0.3); }
+.pb-ff        { background:rgba(240,140,60,0.15); color:#f0a060; border:1px solid rgba(240,140,60,0.3); }
+.pb-bg        { background:rgba(60,200,80,0.15);  color:#70d880; border:1px solid rgba(60,200,80,0.3); }
+.pb-dc        { background:rgba(220,60,80,0.15);  color:#f07080; border:1px solid rgba(220,60,80,0.3); }
 
-.outcome-dot {
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.8rem; font-weight: 800;
-  flex-shrink: 0;
-  margin-top: 1px;
-  font-family: 'Cinzel', serif;
-}
-.outcome-dot.won  { background: var(--win-bg);  color: var(--win);  border: 1.5px solid rgba(52,212,116,0.3); }
-.outcome-dot.lost { background: var(--loss-bg); color: var(--loss); border: 1.5px solid rgba(240,80,80,0.3); }
+/* ── Archetype custom input ───────────────────────────── */
+.arch-custom-wrap { display:none; margin-top:8px; }
+.arch-custom-wrap.visible { display:block; }
 
-.game-body { flex: 1; min-width: 0; }
-.game-deck-name { font-weight: 700; font-size: 0.95rem; color: var(--t1); }
-.game-meta { font-size: 0.78rem; color: var(--t3); margin-top: 1px; }
-.game-opps { font-size: 0.82rem; color: var(--t2); margin-top: 3px; font-style: italic; }
-.game-result { font-size: 0.78rem; color: var(--t2); margin-top: 3px; }
-.game-result strong { color: var(--t1); font-weight: 700; }
+/* ── Win condition grid ───────────────────────────────── */
+.wc-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.wc-btn { padding:13px 10px; border-radius:var(--r); border:1.5px solid var(--b1); background:var(--s2); color:var(--t2); font-size:0.78rem; font-weight:700; font-family:'Cinzel',serif; letter-spacing:0.04em; cursor:pointer; touch-action:manipulation; text-align:center; transition:all 0.15s; -webkit-tap-highlight-color:transparent; text-transform:uppercase; line-height:1.3; }
+.wc-btn:active { opacity:0.75; }
+.wc-btn.selected { border-color:var(--gold); background:var(--gold-bg); color:var(--gold2); }
 
-.wc-tag {
-  font-size: 0.65rem;
-  padding: 3px 8px;
-  border-radius: 20px;
-  font-weight: 700;
-  white-space: nowrap;
-  flex-shrink: 0;
-  margin-top: 2px;
-  font-family: 'Cinzel', serif;
-  letter-spacing: 0.03em;
-  background: var(--s3);
-  color: var(--t2);
-  border: 1px solid var(--b1);
-  align-self: flex-start;
-}
-.wc-tag.combo  { background: rgba(138,80,255,0.15); color: #b080ff; border-color: rgba(138,80,255,0.3); }
-.wc-tag.combat { background: rgba(240,80,80,0.1);   color: #f07070; border-color: rgba(240,80,80,0.3); }
-.wc-tag.drain  { background: rgba(240,140,60,0.12); color: #f0a060; border-color: rgba(240,140,60,0.3); }
-.wc-tag.mill   { background: rgba(60,130,240,0.12); color: #70a8ff; border-color: rgba(60,130,240,0.3); }
-.wc-tag.poison { background: rgba(60,200,80,0.12);  color: #70d880; border-color: rgba(60,200,80,0.3); }
+/* ── Deck picker ──────────────────────────────────────── */
+.deck-pick-list { display:flex; flex-direction:column; gap:8px; }
+.deck-pick-btn { background:var(--s2); border:1.5px solid var(--b1); border-radius:var(--r); padding:14px 16px; display:flex; align-items:center; gap:12px; cursor:pointer; touch-action:manipulation; transition:border-color 0.15s,background 0.15s; -webkit-tap-highlight-color:transparent; text-align:left; width:100%; }
+.deck-pick-btn:active { background:var(--s3); }
+.deck-pick-btn.selected { border-color:var(--gold); background:var(--gold-bg); }
+.deck-pick-info { flex:1; min-width:0; }
+.deck-pick-name { font-weight:700; font-size:0.95rem; color:var(--t1); }
+.deck-pick-sub  { font-size:0.78rem; color:var(--t2); font-style:italic; }
 
-/* ─── DECK CARDS ──────────────────────────────────────────────────────────── */
-.deck-card {
-  background: var(--s1);
-  border: 1px solid var(--b1);
-  border-radius: var(--r2);
-  padding: 16px;
-  margin-bottom: 12px;
-  transition: border-color 0.15s;
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-.deck-card:active { opacity: 0.85; }
-.deck-card::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent 0%, var(--gold) 40%, transparent 100%);
-  opacity: 0.5;
-}
-.deck-name { font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 700; color: var(--gold2); }
-.deck-cmd  { font-size: 0.85rem; color: var(--t2); font-style: italic; margin-top: 2px; }
+/* ── Opponent cards ───────────────────────────────────── */
+.opp-card { background:var(--s2); border:1px solid var(--b1); border-radius:var(--r); padding:14px 16px; display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+.opp-info { flex:1; min-width:0; }
+.opp-name { font-weight:700; color:var(--t1); }
+.opp-sub  { font-size:0.82rem; color:var(--t2); font-style:italic; }
 
-.deck-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 8px; }
-.tag {
-  font-size: 0.68rem; font-weight: 700;
-  padding: 3px 9px; border-radius: 20px;
-  font-family: 'Cinzel', serif; letter-spacing: 0.04em;
-}
-.tag-arch    { background: var(--gold-bg); color: var(--gold); border: 1px solid rgba(212,168,71,0.2); }
-.tag-active  { background: var(--win-bg);  color: var(--win);  border: 1px solid rgba(52,212,116,0.2); }
-.tag-retired { background: var(--s3);      color: var(--t3);   border: 1px solid var(--b1); }
-.tag-pl      { background: var(--s3);      color: var(--t2);   border: 1px solid var(--b1); }
+/* ── Step wizard ──────────────────────────────────────── */
+.step-indicator { display:flex; gap:6px; align-items:center; padding:0 20px 14px; flex-shrink:0; }
+.step-dot { width:28px; height:4px; border-radius:2px; background:var(--s4); transition:background 0.2s,width 0.2s; }
+.step-dot.active { background:var(--gold); width:36px; }
+.step-dot.done   { background:rgba(212,168,71,0.35); }
+.step-panel { display:none; }
+.step-panel.active { display:block; animation:fadeIn 0.18s ease; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
 
-.deck-stats-strip {
-  display: flex; gap: 18px;
-  padding-top: 10px;
-  border-top: 1px solid var(--b1);
-  font-size: 0.78rem; color: var(--t3);
-}
-.deck-stats-strip span { color: var(--t1); font-weight: 700; margin-right: 2px; }
+/* ── Bar chart ────────────────────────────────────────── */
+.bar-chart { padding:4px 0; }
+.bar-row   { display:flex; align-items:center; gap:10px; padding:4px 0; }
+.bar-lbl   { font-size:0.75rem; color:var(--t2); width:130px; text-align:right; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bar-track { flex:1; height:20px; background:var(--s3); border-radius:4px; overflow:hidden; }
+.bar-fill  { height:100%; border-radius:4px; display:flex; align-items:center; padding:0 8px; font-size:0.68rem; font-weight:800; color:#1a1200; font-family:'Cinzel',serif; transition:width 0.7s ease; }
+.bar-ct    { font-size:0.72rem; color:var(--t3); width:24px; text-align:right; font-weight:700; }
 
-.win-bar-bg { background: var(--s3); border-radius: 20px; height: 4px; margin: 8px 0; overflow: hidden; }
-.win-bar-fill { height: 100%; border-radius: 20px; transition: width 0.6s ease; }
+/* ── Empty state ──────────────────────────────────────── */
+.empty-state { text-align:center; padding:48px 24px; color:var(--t3); font-size:0.9rem; font-style:italic; }
+.empty-icon  { font-size:2.5rem; display:block; margin-bottom:12px; opacity:0.5; }
 
-/* ─── MANA PIPS ───────────────────────────────────────────────────────────── */
-.pips { display: flex; gap: 4px; align-items: center; }
-.pip {
-  width: 20px; height: 20px; border-radius: 50%;
-  font-size: 0.6rem; font-weight: 800;
-  display: inline-flex; align-items: center; justify-content: center;
-  border: 1.5px solid rgba(0,0,0,0.3);
-  font-family: 'Cinzel', serif;
-  color: rgba(255,255,255,0.9);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
-  flex-shrink: 0;
+/* ── Bottom sheet modal ───────────────────────────────── */
+.sheet-overlay { display:none; position:fixed; inset:0; z-index:200; background:rgba(5,5,12,0.75); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:flex-end; justify-content:center; }
+.sheet-overlay.open { display:flex; animation:overlayIn 0.2s ease; }
+@keyframes overlayIn { from{opacity:0} to{opacity:1} }
+.sheet { background:var(--s1); border:1px solid var(--b2); border-bottom:none; border-radius:var(--r3) var(--r3) 0 0; width:100%; max-width:560px; max-height:92dvh; max-height:92vh; display:flex; flex-direction:column; box-shadow:0 -8px 40px rgba(0,0,0,0.6); animation:sheetUp 0.28s cubic-bezier(0.32,0.72,0,1); padding-bottom:var(--safe-b); }
+@keyframes sheetUp { from{transform:translateY(100%);opacity:0.8} to{transform:translateY(0);opacity:1} }
+/* On desktop, show as centered dialog instead of bottom sheet */
+@media (min-width:769px) {
+  .sheet-overlay { align-items:center; }
+  .sheet { border-radius:var(--r2); border-bottom:1px solid var(--b2); max-height:88vh; animation:dialogIn 0.22s ease; }
+  @keyframes dialogIn { from{opacity:0;transform:scale(0.97) translateY(8px)} to{opacity:1;transform:none} }
 }
-.pip-W { background: #d8d0a8; color: #5a5030; }
-.pip-U { background: var(--mU); }
-.pip-B { background: var(--mB); }
-.pip-R { background: var(--mR); }
-.pip-G { background: var(--mG); }
-.pip-C { background: var(--mC); }
+.sheet-handle-wrap { padding:10px 0 2px; display:flex; justify-content:center; cursor:pointer; flex-shrink:0; }
+.sheet-handle { width:36px; height:4px; background:var(--b2); border-radius:2px; }
+@media (min-width:769px) { .sheet-handle-wrap { display:none; } }
+.sheet-header { padding:4px 20px 14px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--b1); flex-shrink:0; }
+@media (min-width:769px) { .sheet-header { padding:18px 24px 14px; } }
+.sheet-title { font-family:'Cinzel',serif; font-size:1rem; font-weight:700; color:var(--gold2); letter-spacing:0.04em; }
+.sheet-body { overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; padding:20px 20px 0; flex:1; }
+@media (min-width:769px) { .sheet-body { padding:20px 24px 0; } }
+.sheet-footer { padding:16px 20px; border-top:1px solid var(--b1); flex-shrink:0; display:flex; gap:10px; }
+@media (min-width:769px) { .sheet-footer { padding:16px 24px; } }
 
-/* ─── BUTTONS ─────────────────────────────────────────────────────────────── */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 11px 18px;
-  border: none; border-radius: var(--r);
-  font-family: 'Cinzel', serif;
-  font-size: 0.75rem; font-weight: 700;
-  letter-spacing: 0.07em; text-transform: uppercase;
-  cursor: pointer; touch-action: manipulation;
-  transition: opacity 0.12s, transform 0.12s;
-  -webkit-tap-highlight-color: transparent;
-  white-space: nowrap;
-}
-.btn:active { opacity: 0.8; transform: scale(0.97); }
+/* ── Autocomplete ─────────────────────────────────────── */
+.ac-wrap { position:relative; width:100%; }
+.ac-wrap input { width:100%; }
+.ac-wrap input.ac-loading { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='none' stroke='%23d4a847' stroke-width='2' stroke-dasharray='31.4' stroke-dashoffset='10'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 12 12' to='360 12 12' dur='0.8s' repeatCount='indefinite'/%3E%3C/circle%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:36px; }
+.ac-dropdown { position:absolute; top:calc(100% + 4px); left:0; right:0; background:var(--s1); border:1.5px solid var(--b2); border-radius:var(--r); box-shadow:0 8px 32px rgba(0,0,0,0.7); z-index:500; overflow:hidden; max-height:260px; overflow-y:auto; -webkit-overflow-scrolling:touch; animation:dropIn 0.14s ease; }
+@keyframes dropIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
+.ac-item { padding:12px 14px; font-size:0.95rem; color:var(--t1); cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; border-bottom:1px solid var(--b1); transition:background 0.1s; }
+.ac-item:last-child { border-bottom:none; }
+.ac-item:hover, .ac-item.ac-active { background:var(--s3); }
+.ac-item strong { color:var(--gold2); }
+.ac-footer { padding:6px 14px; font-size:0.62rem; color:var(--t3); text-align:right; background:var(--s2); border-top:1px solid var(--b1); font-family:'Cinzel',serif; letter-spacing:0.06em; }
+.ac-no-results { padding:14px; font-size:0.85rem; color:var(--t3); text-align:center; font-style:italic; }
 
-.btn-gold {
-  background: linear-gradient(135deg, #c09030, var(--gold2));
-  color: #1a1200;
-  box-shadow: 0 2px 12px rgba(212,168,71,0.3);
-  font-weight: 700;
-}
-.btn-ghost {
-  background: var(--s2); color: var(--t2);
-  border: 1px solid var(--b1);
-}
-.btn-ghost:active { background: var(--s3); }
-.btn-danger { background: rgba(200,40,40,0.15); color: var(--loss); border: 1px solid rgba(200,40,40,0.3); }
-.btn-sm { padding: 8px 14px; font-size: 0.68rem; }
-.btn-icon { padding: 9px; width: 38px; height: 38px; border-radius: 50%; }
-.btn-full { width: 100%; padding: 14px; font-size: 0.85rem; }
+/* ── Toast ────────────────────────────────────────────── */
+#toast { position:fixed; bottom:calc(var(--nav-h) + var(--safe-b) + 12px); left:50%; transform:translateX(-50%) translateY(12px); background:var(--s4); color:var(--t1); border:1px solid var(--b2); border-radius:var(--r); padding:11px 22px; font-size:0.88rem; font-weight:600; z-index:300; box-shadow:0 4px 20px rgba(0,0,0,0.5); transition:transform 0.25s ease,opacity 0.25s ease; opacity:0; pointer-events:none; white-space:nowrap; }
+#toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+#toast.success { border-color:rgba(52,212,116,0.4); }
+#toast.error   { border-color:rgba(240,80,80,0.4); }
+@media (min-width:769px) { #toast { bottom:24px; } }
 
-/* ─── WIN/LOSS TOGGLE ─────────────────────────────────────────────────────── */
-.outcome-toggle {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.outcome-btn {
-  padding: 14px;
-  border-radius: var(--r);
-  border: 2px solid var(--b1);
-  background: var(--s2);
-  color: var(--t3);
-  font-family: 'Cinzel', serif;
-  font-size: 0.85rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.06em;
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: all 0.15s;
-  text-align: center;
-  -webkit-tap-highlight-color: transparent;
-}
-.outcome-btn .outcome-icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
-.outcome-btn.sel-win  { border-color: var(--win);  background: var(--win-bg);  color: var(--win); }
-.outcome-btn.sel-loss { border-color: var(--loss); background: var(--loss-bg); color: var(--loss); }
-
-/* ─── FORMS ───────────────────────────────────────────────────────────────── */
-.field { display: flex; flex-direction: column; gap: 6px; }
-
-label {
-  font-family: 'Cinzel', serif;
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--t3);
-}
-
-input, select, textarea {
-  background: var(--s2);
-  border: 1.5px solid var(--b1);
-  border-radius: var(--r);
-  color: var(--t1);
-  font-family: 'Nunito', sans-serif;
-  font-size: 1rem; /* 16px prevents zoom on iOS */
-  padding: 12px 14px;
-  width: 100%;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  appearance: none; -webkit-appearance: none;
-}
-input:focus, select:focus, textarea:focus {
-  outline: none;
-  border-color: rgba(212,168,71,0.5);
-  box-shadow: 0 0 0 3px rgba(212,168,71,0.08);
-}
-input::placeholder, textarea::placeholder { color: var(--t3); }
-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23666688' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
-  padding-right: 36px;
-}
-textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
-
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.form-stack { display: flex; flex-direction: column; gap: 14px; }
-
-.section-label {
-  font-family: 'Cinzel', serif;
-  font-size: 0.65rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.12em;
-  color: var(--t3);
-  padding: 4px 0 2px;
-  border-bottom: 1px solid var(--b1);
-}
-
-/* ─── BOTTOM SHEET MODAL ─────────────────────────────────────────────────── */
-.sheet-overlay {
-  display: none;
-  position: fixed; inset: 0; z-index: 200;
-  background: rgba(5,5,12,0.75);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  align-items: flex-end;
-  justify-content: center;
-}
-.sheet-overlay.open {
-  display: flex;
-  animation: overlayIn 0.2s ease;
-}
-@keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
-
-.sheet {
-  background: var(--s1);
-  border: 1px solid var(--b2);
-  border-bottom: none;
-  border-radius: var(--r3) var(--r3) 0 0;
-  width: 100%;
-  max-width: 560px;
-  max-height: 92dvh;
-  max-height: 92vh;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 -8px 40px rgba(0,0,0,0.6);
-  animation: sheetUp 0.28s cubic-bezier(0.32, 0.72, 0, 1);
-  padding-bottom: var(--safe-b);
-}
-@keyframes sheetUp {
-  from { transform: translateY(100%); opacity: 0.8; }
-  to   { transform: translateY(0);    opacity: 1; }
-}
-
-.sheet-handle-wrap {
-  padding: 10px 0 2px;
-  display: flex; justify-content: center;
-  cursor: pointer; flex-shrink: 0;
-}
-.sheet-handle {
-  width: 36px; height: 4px;
-  background: var(--b2);
-  border-radius: 2px;
-}
-
-.sheet-header {
-  padding: 4px 20px 14px;
-  display: flex; align-items: center; justify-content: space-between;
-  border-bottom: 1px solid var(--b1);
-  flex-shrink: 0;
-}
-.sheet-title {
-  font-family: 'Cinzel', serif;
-  font-size: 1rem; font-weight: 700;
-  color: var(--gold2);
-  letter-spacing: 0.04em;
-}
-
-.sheet-body {
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  padding: 20px 20px 0;
-  flex: 1;
-}
-
-.sheet-footer {
-  padding: 16px 20px;
-  border-top: 1px solid var(--b1);
-  flex-shrink: 0;
-  display: flex; gap: 10px;
-}
-
-/* ─── STEP WIZARD (for game logging) ─────────────────────────────────────── */
-.step-indicator {
-  display: flex; gap: 6px; align-items: center;
-  padding: 0 20px 14px;
-  flex-shrink: 0;
-}
-.step-dot {
-  width: 28px; height: 4px;
-  border-radius: 2px;
-  background: var(--s4);
-  transition: background 0.2s, width 0.2s;
-}
-.step-dot.active  { background: var(--gold); width: 36px; }
-.step-dot.done    { background: var(--gold-glow); }
-
-.step-panel { display: none; }
-.step-panel.active { display: block; animation: fadeIn 0.18s ease; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-/* ─── DECK SELECTOR (big tap targets) ────────────────────────────────────── */
-.deck-pick-list { display: flex; flex-direction: column; gap: 8px; }
-.deck-pick-btn {
-  background: var(--s2); border: 1.5px solid var(--b1);
-  border-radius: var(--r); padding: 14px 16px;
-  display: flex; align-items: center; gap: 12px;
-  cursor: pointer; touch-action: manipulation;
-  transition: border-color 0.15s, background 0.15s;
-  -webkit-tap-highlight-color: transparent;
-  text-align: left; width: 100%;
-}
-.deck-pick-btn:active { background: var(--s3); }
-.deck-pick-btn.selected { border-color: var(--gold); background: var(--gold-bg); }
-.deck-pick-info { flex: 1; min-width: 0; }
-.deck-pick-name { font-weight: 700; font-size: 0.95rem; color: var(--t1); }
-.deck-pick-sub  { font-size: 0.78rem; color: var(--t2); font-style: italic; }
-
-/* ─── OPPONENT ROWS ───────────────────────────────────────────────────────── */
-.opp-card {
-  background: var(--s2); border: 1px solid var(--b1);
-  border-radius: var(--r); padding: 14px 16px;
-  display: flex; align-items: center; gap: 12px;
-  margin-bottom: 8px;
-}
-.opp-info { flex: 1; min-width: 0; }
-.opp-name { font-weight: 700; color: var(--t1); }
-.opp-sub  { font-size: 0.82rem; color: var(--t2); font-style: italic; }
-
-/* ─── WIN CONDITION GRID ──────────────────────────────────────────────────── */
-.wc-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-.wc-btn {
-  padding: 13px 10px;
-  border-radius: var(--r);
-  border: 1.5px solid var(--b1);
-  background: var(--s2);
-  color: var(--t2);
-  font-size: 0.78rem; font-weight: 700;
-  font-family: 'Cinzel', serif; letter-spacing: 0.04em;
-  cursor: pointer; touch-action: manipulation;
-  text-align: center; transition: all 0.15s;
-  -webkit-tap-highlight-color: transparent;
-  text-transform: uppercase;
-  line-height: 1.3;
-}
-.wc-btn:active { opacity: 0.75; }
-.wc-btn.selected { border-color: var(--gold); background: var(--gold-bg); color: var(--gold2); }
-
-/* ─── BAR CHART ───────────────────────────────────────────────────────────── */
-.bar-chart { padding: 4px 0; }
-.bar-row   { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
-.bar-lbl   { font-size: 0.75rem; color: var(--t2); width: 130px; text-align: right; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bar-track { flex: 1; height: 20px; background: var(--s3); border-radius: 4px; overflow: hidden; }
-.bar-fill  { height: 100%; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; font-size: 0.68rem; font-weight: 800; color: #1a1200; font-family: 'Cinzel', serif; transition: width 0.7s ease; }
-.bar-ct    { font-size: 0.72rem; color: var(--t3); width: 24px; text-align: right; font-weight: 700; }
-
-/* ─── EMPTY STATE ─────────────────────────────────────────────────────────── */
-.empty-state {
-  text-align: center; padding: 48px 24px;
-  color: var(--t3); font-size: 0.9rem; font-style: italic;
-}
-.empty-icon { font-size: 2.5rem; display: block; margin-bottom: 12px; opacity: 0.5; }
-
-/* ─── TOAST ───────────────────────────────────────────────────────────────── */
-#toast {
-  position: fixed; bottom: calc(var(--nav-h) + var(--safe-b) + 12px); left: 50%;
-  transform: translateX(-50%) translateY(12px);
-  background: var(--s4); color: var(--t1);
-  border: 1px solid var(--b2);
-  border-radius: var(--r);
-  padding: 11px 22px;
-  font-size: 0.88rem; font-weight: 600;
-  z-index: 300;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-  transition: transform 0.25s ease, opacity 0.25s ease;
-  opacity: 0; pointer-events: none;
-  white-space: nowrap;
-}
-#toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-#toast.success { border-color: rgba(52,212,116,0.4); }
-#toast.error   { border-color: rgba(240,80,80,0.4); }
-
-/* ─── SCROLLBAR ───────────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 3px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--b2); border-radius: 2px; }
-
-/* ─── COMMANDER AUTOCOMPLETE ──────────────────────────────────────────────── */
-.ac-wrap { position: relative; width: 100%; }
-.ac-wrap input { width: 100%; }
-.ac-wrap input.ac-loading {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='none' stroke='%23d4a847' stroke-width='2' stroke-dasharray='31.4' stroke-dashoffset='10'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 12 12' to='360 12 12' dur='0.8s' repeatCount='indefinite'/%3E%3C/circle%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;
-}
-.ac-dropdown {
-  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
-  background: var(--s1); border: 1.5px solid var(--b2); border-radius: var(--r);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.7), 0 0 0 1px rgba(212,168,71,0.08);
-  z-index: 500; overflow: hidden; max-height: 260px; overflow-y: auto;
-  -webkit-overflow-scrolling: touch; animation: dropIn 0.14s ease;
-}
-@keyframes dropIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
-.ac-item {
-  padding: 12px 14px; font-size: 0.95rem; color: var(--t1);
-  cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-  border-bottom: 1px solid var(--b1); display: flex; align-items: center; gap: 10px;
-  transition: background 0.1s;
-}
-.ac-item:last-child { border-bottom: none; }
-.ac-item:hover, .ac-item.ac-active { background: var(--s3); }
-.ac-item:active { background: var(--s4); }
-.ac-item-name { flex: 1; min-width: 0; }
-.ac-item-name strong { color: var(--gold2); font-weight: 700; }
-.ac-item-sub { font-size: 0.7rem; color: var(--t3); font-style: italic; white-space: nowrap; font-family: "Cinzel", serif; }
-.ac-footer { padding: 6px 14px; font-size: 0.62rem; color: var(--t3); text-align: right;
-  background: var(--s2); border-top: 1px solid var(--b1); font-family: "Cinzel", serif; letter-spacing: 0.06em; }
-.ac-no-results { padding: 14px; font-size: 0.85rem; color: var(--t3); text-align: center; font-style: italic; }
-
+/* ── Scrollbar ────────────────────────────────────────── */
+::-webkit-scrollbar { width:3px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--b2); border-radius:2px; }
 </style>
 </head>
 <body>
 <div id="app">
-  <div id="content">
+  <!-- ── Sidebar (desktop) ──────────────────────────────── -->
+  <nav id="sidebar">
+    <div class="sidebar-brand"><span class="brand-icon">⚔</span>EDH Vault</div>
+    <div class="sidebar-nav">
+      <button class="sidebar-item active" data-page="dash"     onclick="nav('dash')"><span class="si-icon">📊</span><span class="si-label">Dashboard</span></button>
+      <button class="sidebar-item"        data-page="decks"    onclick="nav('decks')"><span class="si-icon">🃏</span><span class="si-label">My Decks</span></button>
+      <button class="sidebar-item"        data-page="log"      onclick="nav('log')"><span class="si-icon">📜</span><span class="si-label">Game History</span></button>
+      <button class="sidebar-item"        data-page="roster"   onclick="nav('roster')"><span class="si-icon">👥</span><span class="si-label">Roster</span></button>
+    </div>
+    <button class="sidebar-log-btn" onclick="openGameSheet()">🎲 Log a Game</button>
+  </nav>
 
-    <!-- ── DASHBOARD ──────────────────────────────────────────────────────── -->
+  <div id="content">
+    <!-- ── Dashboard ──────────────────────────────────────── -->
     <div id="page-dash" class="page active">
       <div class="page-header">
         <span class="page-title">⚔ EDH Vault</span>
@@ -685,42 +347,40 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
           <div>Commander Tracker</div>
         </div>
       </div>
-
-      <div class="stat-row" id="stat-row">
+      <div class="stat-row">
         <div class="stat-pill"><span class="stat-num" id="s-games">—</span><div class="stat-lbl">Games</div></div>
         <div class="stat-pill"><span class="stat-num green" id="s-wins">—</span><div class="stat-lbl">Wins</div></div>
         <div class="stat-pill"><span class="stat-num" id="s-wr">—</span><div class="stat-lbl">Win %</div></div>
       </div>
-
       <div class="card">
         <div class="card-head"><h2>Recent Games</h2></div>
         <div id="recent-list"></div>
       </div>
-
       <div class="card section-gap">
         <div class="card-head"><h2>How Games End</h2></div>
         <div id="wc-chart" class="bar-chart" style="padding:12px 16px;"></div>
       </div>
     </div>
 
-    <!-- ── DECKS ───────────────────────────────────────────────────────────── -->
+    <!-- ── Decks ───────────────────────────────────────────── -->
     <div id="page-decks" class="page">
       <div class="page-header">
         <span class="page-title">🃏 My Decks</span>
-        <button class="btn btn-gold btn-sm" onclick="openDeckSheet()">+ Deck</button>
+        <button class="btn btn-gold btn-sm" onclick="openDeckSheet()">+ New Deck</button>
       </div>
-      <div id="decks-list"></div>
+      <div id="decks-list" class="deck-grid"></div>
     </div>
 
-    <!-- ── GAME LOG ────────────────────────────────────────────────────────── -->
+    <!-- ── Game Log ────────────────────────────────────────── -->
     <div id="page-log" class="page">
       <div class="page-header">
         <span class="page-title">🎲 Game Log</span>
+        <button class="btn btn-gold btn-sm" onclick="openGameSheet()">+ Log Game</button>
       </div>
       <div id="games-full-list"></div>
     </div>
 
-    <!-- ── ROSTER ──────────────────────────────────────────────────────────── -->
+    <!-- ── Roster ──────────────────────────────────────────── -->
     <div id="page-roster" class="page">
       <div class="page-header">
         <span class="page-title">👥 Roster</span>
@@ -728,35 +388,19 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
       </div>
       <div id="roster-list"></div>
     </div>
+  </div>
 
-  </div><!-- /content -->
-
-  <!-- ── BOTTOM NAV ────────────────────────────────────────────────────────── -->
+  <!-- ── Bottom nav (mobile) ────────────────────────────── -->
   <nav id="bottom-nav">
-    <button class="nav-item active" data-page="dash" onclick="nav('dash')">
-      <span class="nav-icon">📊</span>
-      <span class="nav-label">Stats</span>
-    </button>
-    <button class="nav-item" data-page="decks" onclick="nav('decks')">
-      <span class="nav-icon">🃏</span>
-      <span class="nav-label">Decks</span>
-    </button>
-    <button class="nav-item nav-log" onclick="openGameSheet()">
-      <div class="nav-log-inner">🎲</div>
-      <span class="nav-log-label">Log Game</span>
-    </button>
-    <button class="nav-item" data-page="log" onclick="nav('log')">
-      <span class="nav-icon">📜</span>
-      <span class="nav-label">History</span>
-    </button>
-    <button class="nav-item" data-page="roster" onclick="nav('roster')">
-      <span class="nav-icon">👥</span>
-      <span class="nav-label">Roster</span>
-    </button>
+    <button class="nav-item active" data-page="dash"   onclick="nav('dash')"><span class="nav-icon">📊</span><span class="nav-label">Stats</span></button>
+    <button class="nav-item"        data-page="decks"  onclick="nav('decks')"><span class="nav-icon">🃏</span><span class="nav-label">Decks</span></button>
+    <button class="nav-item nav-log" onclick="openGameSheet()"><div class="nav-log-inner">🎲</div><span class="nav-log-label">Log</span></button>
+    <button class="nav-item"        data-page="log"    onclick="nav('log')"><span class="nav-icon">📜</span><span class="nav-label">History</span></button>
+    <button class="nav-item"        data-page="roster" onclick="nav('roster')"><span class="nav-icon">👥</span><span class="nav-label">Roster</span></button>
   </nav>
 </div>
 
-<!-- ══ GAME LOG SHEET (step wizard) ════════════════════════════════════════ -->
+<!-- ══ GAME LOG SHEET ═══════════════════════════════════════════════════════ -->
 <div id="sheet-game" class="sheet-overlay">
   <div class="sheet">
     <div class="sheet-handle-wrap" onclick="closeSheet('sheet-game')"><div class="sheet-handle"></div></div>
@@ -765,9 +409,9 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
       <button class="btn btn-ghost btn-icon btn-sm" onclick="closeSheet('sheet-game')" style="font-size:1rem;">✕</button>
     </div>
     <div class="step-indicator" id="step-dots"></div>
-
     <div class="sheet-body" id="game-sheet-body">
-      <!-- Step 1: Pick deck + outcome -->
+
+      <!-- Step 1: Deck + outcome -->
       <div class="step-panel active" id="step-1">
         <div class="form-stack">
           <div class="field">
@@ -777,39 +421,50 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
           <div class="field" style="margin-top:4px;">
             <label>Result</label>
             <div class="outcome-toggle">
-              <button class="outcome-btn" id="btn-win" onclick="setOutcome(1)">
-                <span class="outcome-icon">🏆</span>I Won
-              </button>
-              <button class="outcome-btn" id="btn-loss" onclick="setOutcome(0)">
-                <span class="outcome-icon">💀</span>I Lost
-              </button>
+              <button class="outcome-btn" id="btn-win"  onclick="setOutcome(1)"><span class="outcome-icon">🏆</span>I Won</button>
+              <button class="outcome-btn" id="btn-loss" onclick="setOutcome(0)"><span class="outcome-icon">💀</span>I Lost</button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Step 2: Opponents -->
+      <!-- Step 2: Opponents (up to 3, each with optional partner) -->
       <div class="step-panel" id="step-2">
         <div class="form-stack">
-          <div class="label-sm" style="margin-bottom:-4px;">Opponent 1</div>
+          <!-- Opponent 1 -->
+          <div class="section-label">Opponent 1</div>
           <div class="form-row">
             <div class="field"><label>Commander</label><div class="ac-wrap"><input id="o1c" placeholder="e.g. Urza" autocomplete="off"></div></div>
-            <div class="field"><label>Archetype</label><select id="o1a"><option value="">—</option></select></div>
+            <div class="field"><label>Archetype</label><div id="o1a-wrap"></div></div>
           </div>
-          <div class="label-sm" style="margin-bottom:-4px;">Opponent 2 <span style="opacity:0.5">(optional)</span></div>
+          <div class="partner-row" id="o1-partner-row">
+            <label id="o1-partner-label">Partner Commander</label>
+            <div class="ac-wrap"><input id="o1p" placeholder="Partner name" autocomplete="off"></div>
+          </div>
+          <!-- Opponent 2 -->
+          <div class="section-label">Opponent 2 <span style="opacity:0.5;font-weight:400">(optional)</span></div>
           <div class="form-row">
             <div class="field"><label>Commander</label><div class="ac-wrap"><input id="o2c" placeholder="optional" autocomplete="off"></div></div>
-            <div class="field"><label>Archetype</label><select id="o2a"><option value="">—</option></select></div>
+            <div class="field"><label>Archetype</label><div id="o2a-wrap"></div></div>
           </div>
-          <div class="label-sm" style="margin-bottom:-4px;">Opponent 3 <span style="opacity:0.5">(optional)</span></div>
+          <div class="partner-row" id="o2-partner-row">
+            <label id="o2-partner-label">Partner Commander</label>
+            <div class="ac-wrap"><input id="o2p" placeholder="Partner name" autocomplete="off"></div>
+          </div>
+          <!-- Opponent 3 -->
+          <div class="section-label">Opponent 3 <span style="opacity:0.5;font-weight:400">(optional)</span></div>
           <div class="form-row">
             <div class="field"><label>Commander</label><div class="ac-wrap"><input id="o3c" placeholder="optional" autocomplete="off"></div></div>
-            <div class="field"><label>Archetype</label><select id="o3a"><option value="">—</option></select></div>
+            <div class="field"><label>Archetype</label><div id="o3a-wrap"></div></div>
+          </div>
+          <div class="partner-row" id="o3-partner-row">
+            <label id="o3-partner-label">Partner Commander</label>
+            <div class="ac-wrap"><input id="o3p" placeholder="Partner name" autocomplete="off"></div>
           </div>
         </div>
       </div>
 
-      <!-- Step 3: Result details -->
+      <!-- Step 3: Result -->
       <div class="step-panel" id="step-3">
         <div class="form-stack">
           <div class="field">
@@ -830,14 +485,10 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
             <div class="field"><label>Date</label><input id="g-date" type="date"></div>
             <div class="field"><label>Location</label><input id="g-loc" placeholder="e.g. The Game Store"></div>
           </div>
-          <div class="field">
-            <label>Notes</label>
-            <textarea id="g-notes" placeholder="Key plays, how it ended, interesting moments…"></textarea>
-          </div>
+          <div class="field"><label>Notes</label><textarea id="g-notes" placeholder="Key plays, how it ended…"></textarea></div>
         </div>
       </div>
     </div>
-
     <div class="sheet-footer">
       <button class="btn btn-ghost" id="game-back-btn" onclick="gameStep(-1)" style="display:none">← Back</button>
       <button class="btn btn-gold btn-full" id="game-next-btn" onclick="gameStep(1)">Next →</button>
@@ -856,33 +507,60 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
     <div class="sheet-body">
       <div class="form-stack" style="padding-bottom:20px;">
         <div class="field"><label>Deck Name *</label><input id="dm-name" placeholder="e.g. Atraxa Superfriends"></div>
-        <div class="form-row">
-          <div class="field"><label>Commander *</label><div class="ac-wrap"><input id="dm-cmd" placeholder="Commander" autocomplete="off"></div></div>
-          <div class="field"><label>Partner</label><div class="ac-wrap"><input id="dm-partner" placeholder="(optional)" autocomplete="off"></div></div>
+
+        <!-- Commander with partner support -->
+        <div class="field">
+          <label>Commander *</label>
+          <div class="ac-wrap"><input id="dm-cmd" placeholder="Start typing a commander name…" autocomplete="off"></div>
         </div>
-        <div class="form-row">
-          <div class="field"><label>Mana Colors</label><input id="dm-colors" placeholder="e.g. WUBG"></div>
-          <div class="field"><label>Identity *</label>
-            <select id="dm-ci">
-              <option value="">— Select —</option>
-              <optgroup label="Mono"><option>Mono-White</option><option>Mono-Blue</option><option>Mono-Black</option><option>Mono-Red</option><option>Mono-Green</option><option>Colorless</option></optgroup>
-              <optgroup label="Two-Color"><option>Azorius (WU)</option><option>Dimir (UB)</option><option>Rakdos (BR)</option><option>Gruul (RG)</option><option>Selesnya (WG)</option><option>Orzhov (WB)</option><option>Izzet (UR)</option><option>Golgari (BG)</option><option>Boros (WR)</option><option>Simic (UG)</option></optgroup>
-              <optgroup label="Three-Color"><option>Esper (WUB)</option><option>Grixis (UBR)</option><option>Jund (BRG)</option><option>Naya (WRG)</option><option>Bant (WUG)</option><option>Abzan (WBG)</option><option>Jeskai (WUR)</option><option>Sultai (UBG)</option><option>Mardu (WBR)</option><option>Temur (URG)</option></optgroup>
-              <optgroup label="4-5 Color"><option>4-Color (WUBR)</option><option>4-Color (WUBG)</option><option>4-Color (WBRG)</option><option>4-Color (UBRG)</option><option>5-Color (WUBRG)</option></optgroup>
-            </select>
+        <div class="partner-row" id="dm-partner-row">
+          <label id="dm-partner-label">Partner <span id="dm-partner-badge"></span></label>
+          <div class="ac-wrap"><input id="dm-partner" placeholder="Partner name" autocomplete="off"></div>
+        </div>
+
+        <!-- Color identity (auto-filled by Scryfall, editable) -->
+        <div class="field">
+          <label>Color Identity *</label>
+          <select id="dm-ci">
+            <option value="">— Select or auto-filled from Scryfall —</option>
+            <optgroup label="Mono"><option>Mono-White</option><option>Mono-Blue</option><option>Mono-Black</option><option>Mono-Red</option><option>Mono-Green</option><option>Colorless</option></optgroup>
+            <optgroup label="Two-Color"><option>Azorius (WU)</option><option>Dimir (UB)</option><option>Rakdos (BR)</option><option>Gruul (RG)</option><option>Selesnya (WG)</option><option>Orzhov (WB)</option><option>Izzet (UR)</option><option>Golgari (BG)</option><option>Boros (WR)</option><option>Simic (UG)</option></optgroup>
+            <optgroup label="Three-Color"><option>Esper (WUB)</option><option>Grixis (UBR)</option><option>Jund (BRG)</option><option>Naya (WRG)</option><option>Bant (WUG)</option><option>Abzan (WBG)</option><option>Jeskai (WUR)</option><option>Sultai (UBG)</option><option>Mardu (WBR)</option><option>Temur (URG)</option></optgroup>
+            <optgroup label="4-5 Color"><option>4-Color (WUBR)</option><option>4-Color (WUBG)</option><option>4-Color (WBRG)</option><option>4-Color (UBRG)</option><option>5-Color (WUBRG)</option></optgroup>
+          </select>
+        </div>
+
+        <!-- Archetype with custom option -->
+        <div class="field">
+          <label>Archetype *</label>
+          <select id="dm-arch" onchange="handleArchChange(this,'dm-arch-custom')">
+            <option value="">— Select —</option>
+            <option>Aggro</option><option>Combo</option><option>Control</option><option>Midrange</option><option>Stax</option>
+            <option>Superfriends</option><option>Token Swarm</option><option>Graveyard Value</option><option>Voltron</option>
+            <option>Tribal</option><option>Spellslinger</option><option>Group Hug</option><option>Aristocrats</option>
+            <option>Reanimator</option><option>Lands</option><option value="__custom__">✏ Custom…</option>
+          </select>
+          <div class="arch-custom-wrap" id="dm-arch-custom">
+            <input id="dm-arch-custom-val" placeholder="Enter custom archetype…" autocomplete="off">
           </div>
         </div>
+
         <div class="form-row">
-          <div class="field"><label>Archetype *</label>
-            <select id="dm-arch">
-              <option value="">— Select —</option>
-              <option>Aggro</option><option>Combo</option><option>Control</option><option>Midrange</option><option>Stax</option><option>Superfriends</option><option>Token Swarm</option><option>Graveyard Value</option><option>Voltron</option><option>Tribal</option><option>Spellslinger</option><option>Group Hug</option><option>Aristocrats</option><option>Reanimator</option><option>Lands</option>
+          <div class="field">
+            <label>Power Level (1–5)</label>
+            <select id="dm-pl">
+              <option value="">—</option>
+              <option value="1">1 — Casual / Pre-con</option>
+              <option value="2">2 — Upgraded</option>
+              <option value="3">3 — Focused / Synergistic</option>
+              <option value="4">4 — Highly Optimised</option>
+              <option value="5">5 — CEDH / Optimised</option>
             </select>
           </div>
-          <div class="field"><label>Power Level</label><input id="dm-pl" type="number" min="1" max="10" placeholder="1–10"></div>
-        </div>
-        <div class="field"><label>Status</label>
-          <select id="dm-status"><option>Active</option><option>Retired</option><option>Building</option><option>Loaned Out</option></select>
+          <div class="field">
+            <label>Status</label>
+            <select id="dm-status"><option>Active</option><option>Retired</option><option>Building</option><option>Loaned Out</option></select>
+          </div>
         </div>
         <div class="field"><label>Notes</label><textarea id="dm-notes" placeholder="Strategy, key combos…"></textarea></div>
       </div>
@@ -895,7 +573,7 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
   </div>
 </div>
 
-<!-- ══ OPPONENT SHEET ═════════════════════════════════════════════════════ -->
+<!-- ══ OPPONENT SHEET ════════════════════════════════════════════════════════ -->
 <div id="sheet-opp" class="sheet-overlay">
   <div class="sheet">
     <div class="sheet-handle-wrap" onclick="closeSheet('sheet-opp')"><div class="sheet-handle"></div></div>
@@ -906,17 +584,30 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
     <div class="sheet-body">
       <div class="form-stack" style="padding-bottom:20px;">
         <div class="field"><label>Player Name *</label><input id="om-name" placeholder="Name or alias"></div>
+        <div class="field"><label>Signature Commander</label><div class="ac-wrap"><input id="om-cmd" placeholder="e.g. Urza, Lord High Artificer" autocomplete="off"></div></div>
         <div class="form-row">
-          <div class="field"><label>Signature Commander</label><div class="ac-wrap"><input id="om-cmd" placeholder="e.g. Urza" autocomplete="off"></div></div>
-          <div class="field"><label>Colors</label><input id="om-colors" placeholder="e.g. Mono-Blue"></div>
-        </div>
-        <div class="form-row">
-          <div class="field"><label>Archetype</label>
-            <select id="om-arch"><option value="">—</option><option>Aggro</option><option>Combo</option><option>Control</option><option>Midrange</option><option>Stax</option><option>Superfriends</option><option>Token Swarm</option><option>Graveyard Value</option><option>Voltron</option><option>Tribal</option><option>Spellslinger</option><option>Group Hug</option><option>Aristocrats</option><option>Reanimator</option><option>Lands</option></select>
+          <div class="field">
+            <label>Archetype</label>
+            <select id="om-arch" onchange="handleArchChange(this,'om-arch-custom')">
+              <option value="">—</option>
+              <option>Aggro</option><option>Combo</option><option>Control</option><option>Midrange</option><option>Stax</option>
+              <option>Superfriends</option><option>Token Swarm</option><option>Graveyard Value</option><option>Voltron</option>
+              <option>Tribal</option><option>Spellslinger</option><option>Group Hug</option><option>Aristocrats</option>
+              <option>Reanimator</option><option>Lands</option><option value="__custom__">✏ Custom…</option>
+            </select>
+            <div class="arch-custom-wrap" id="om-arch-custom">
+              <input id="om-arch-custom-val" placeholder="Enter custom archetype…">
+            </div>
           </div>
-          <div class="field"><label>Power Level</label><input id="om-pl" type="number" min="1" max="10" placeholder="1–10"></div>
+          <div class="field"><label>Power Level</label>
+            <select id="om-pl">
+              <option value="">—</option>
+              <option value="1">1 — Casual</option><option value="2">2 — Upgraded</option>
+              <option value="3">3 — Focused</option><option value="4">4 — Optimised</option><option value="5">5 — CEDH</option>
+            </select>
+          </div>
         </div>
-        <div class="field"><label>Notes</label><textarea id="om-notes" placeholder="Playstyle, dangerous combos to watch for…"></textarea></div>
+        <div class="field"><label>Notes</label><textarea id="om-notes" placeholder="Playstyle, combos to watch for…"></textarea></div>
       </div>
     </div>
     <div class="sheet-footer">
@@ -930,22 +621,194 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
 
 <script>
 const API = '';
-const ARCHETYPES = ['Aggro','Combo','Control','Midrange','Stax','Superfriends','Token Swarm','Graveyard Value','Voltron','Tribal','Spellslinger','Group Hug','Aristocrats','Reanimator','Lands'];
 const WIN_CONDITIONS = [
-  {label:'Combat Damage', cls:'combat'}, {label:'Commander Damage', cls:'combat'},
-  {label:'Combo (Infinite)', cls:'combo'}, {label:'Combo (Non-Infinite)', cls:'combo'},
-  {label:'Life Drain', cls:'drain'},       {label:'Alt. Wincon', cls:''},
-  {label:'Milling', cls:'mill'},           {label:'Poison / Infect', cls:'poison'},
-  {label:'Stax Lock', cls:''},             {label:'Concession', cls:''}
+  {label:'Combat Damage',cls:'combat'},{label:'Commander Damage',cls:'combat'},
+  {label:'Combo (Infinite)',cls:'combo'},{label:'Combo (Non-Infinite)',cls:'combo'},
+  {label:'Life Drain',cls:'drain'},{label:'Alt. Wincon',cls:''},
+  {label:'Milling',cls:'mill'},{label:'Poison / Infect',cls:'poison'},
+  {label:'Stax Lock',cls:''},{label:'Concession',cls:''}
 ];
+const ARCHETYPES = ['Aggro','Combo','Control','Midrange','Stax','Superfriends','Token Swarm',
+  'Graveyard Value','Voltron','Tribal','Spellslinger','Group Hug','Aristocrats','Reanimator','Lands'];
 
 let decks=[], games=[], opponents=[], stats={};
-let gameState = { step:1, deckId:null, won:null, wc:'' };
+let gameState = {step:1, deckId:null, won:null, wc:''};
 
-// ── Navigation ─────────────────────────────────────────────────────────────
+// ── Scryfall ──────────────────────────────────────────────────────────────────
+const SCRYFALL_AC    = 'https://api.scryfall.com/cards/autocomplete?include_extras=false&q=';
+const SCRYFALL_NAMED = 'https://api.scryfall.com/cards/named?exact=';
+const SCRYFALL_SEARCH= 'https://api.scryfall.com/cards/search?q=';
+const acCache = new Map();
+const cardCache = new Map(); // full card data cache
+
+// Fetch autocomplete — commanders only (is:commander, excludes paupercommander)
+async function scryfallAC(query) {
+  const q = query.trim();
+  if (q.length < 2) return [];
+  // Use search-based AC restricted to legal commanders (not pauper EDH)
+  // Scryfall /cards/autocomplete doesn't filter by legality, so we use it for speed
+  // but add is:commander to /cards/search for validation on selection
+  const key = 'ac:' + q;
+  if (acCache.has(key)) return acCache.get(key);
+  try {
+    const r = await fetch(SCRYFALL_AC + encodeURIComponent(q));
+    if (!r.ok) return [];
+    const data = await r.json();
+    const names = (data.data || []).slice(0, 12);
+    acCache.set(key, names);
+    return names;
+  } catch { return []; }
+}
+
+// Fetch full card data — used to detect partner type, color identity etc.
+async function fetchCard(name) {
+  if (!name) return null;
+  const key = name.toLowerCase();
+  if (cardCache.has(key)) return cardCache.get(key);
+  try {
+    const r = await fetch(SCRYFALL_NAMED + encodeURIComponent(name));
+    if (!r.ok) return null;
+    const card = await r.json();
+    cardCache.set(key, card);
+    return card;
+  } catch { return null; }
+}
+
+// Detect partner type from a card object
+// Returns: null | 'partner' | 'partner_with' | 'friends_forever' | 'background' | 'choose_background' | 'doctors_companion' | 'time_lord_doctor'
+function detectPartnerType(card) {
+  if (!card) return null;
+  const kw = (card.keywords || []).map(k => k.toLowerCase());
+  const oracle = (card.oracle_text || '').toLowerCase();
+
+  if (kw.includes('partner')) {
+    // Check for "Partner with [Name]" (specific partner)
+    if (/partner with/.test(oracle)) return 'partner_with';
+    return 'partner';
+  }
+  if (kw.includes('friends forever')) return 'friends_forever';
+  if (kw.includes('background'))      return 'background';      // IS a background (enchantment)
+  if (/choose a background/.test(oracle)) return 'choose_background'; // legendary creature that wants a background
+  if (kw.includes("doctor's companion")) return 'doctors_companion';
+  if (kw.includes('time lord doctor'))   return 'time_lord_doctor';
+  return null;
+}
+
+// Extract "Partner with NAME" target from oracle text
+function extractPartnerWith(card) {
+  const m = (card.oracle_text || '').match(/Partner with ([^\(]+)/i);
+  return m ? m[1].trim() : null;
+}
+
+// Given a partner type, build the Scryfall search query for valid partners
+function partnerSearchQuery(partnerType, cardName) {
+  switch (partnerType) {
+    case 'partner':          return 'is:commander is:partner -"Partner with" f:commander';
+    case 'friends_forever':  return 'is:commander keyword:"Friends Forever" f:commander';
+    case 'choose_background':return 't:background f:commander';
+    case 'background':       return 'is:commander oracle:"choose a background" f:commander';
+    case 'doctors_companion':return 'is:commander keyword:"Time Lord Doctor" f:commander';
+    case 'time_lord_doctor': return 'is:commander keyword:"Doctor\'s Companion" f:commander';
+    default: return null;
+  }
+}
+
+// Get partner type label for display
+function partnerTypeLabel(pt) {
+  const labels = {
+    partner: '🤝 Partner',
+    partner_with: '🔗 Partner With',
+    friends_forever: '💛 Friends Forever',
+    background: '🎭 Background',
+    choose_background: '🎭 Choose a Background',
+    doctors_companion: "🩺 Doctor's Companion",
+    time_lord_doctor: '⏳ Time Lord Doctor',
+  };
+  return labels[pt] || '';
+}
+function partnerBadgeClass(pt) {
+  const cls = { partner:'pb-partner', partner_with:'pb-partner', friends_forever:'pb-ff', background:'pb-bg', choose_background:'pb-bg', doctors_companion:'pb-dc', time_lord_doctor:'pb-dc' };
+  return cls[pt] || 'pb-partner';
+}
+
+// Color identity → select value
+function colorIdentityToSelect(ci_arr) {
+  if (!ci_arr || !ci_arr.length) return 'Colorless';
+  const s = [...ci_arr].sort().join('');
+  const map = {
+    'W':'Mono-White','U':'Mono-Blue','B':'Mono-Black','R':'Mono-Red','G':'Mono-Green',
+    'UW':'Azorius (WU)','BU':'Dimir (UB)','BR':'Rakdos (BR)','GR':'Gruul (RG)','GW':'Selesnya (WG)',
+    'BW':'Orzhov (WB)','RU':'Izzet (UR)','BG':'Golgari (BG)','RW':'Boros (WR)','GU':'Simic (UG)',
+    'BUW':'Esper (WUB)','BRU':'Grixis (UBR)','BGR':'Jund (BRG)','GRW':'Naya (WRG)','GUW':'Bant (WUG)',
+    'BGW':'Abzan (WBG)','RUW':'Jeskai (WUR)','BGU':'Sultai (UBG)','BRW':'Mardu (WBR)','GRU':'Temur (URG)',
+    'BRUW':'4-Color (WUBR)','BGUW':'4-Color (WUBG)','BGRW':'4-Color (WBRG)','BGRU':'4-Color (UBRG)',
+    'BGRUW':'5-Color (WUBRG)'
+  };
+  return map[s] || s;
+}
+
+// ── Archetype helpers ─────────────────────────────────────────────────────────
+function buildArchSelect(id, wrapId, onChangeFn) {
+  const wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+  const customId   = id + '-custom-wrap';
+  const customValId= id + '-custom-val';
+  wrap.innerHTML = `
+    <select id="${id}" onchange="${onChangeFn}">
+      <option value="">—</option>
+      ${ARCHETYPES.map(a=>`<option>${a}</option>`).join('')}
+      <option value="__custom__">✏ Custom…</option>
+    </select>
+    <div class="arch-custom-wrap" id="${customId}">
+      <input id="${customValId}" placeholder="Enter custom archetype…" autocomplete="off">
+    </div>`;
+}
+
+function handleArchChange(sel, customWrapId) {
+  const wrap = document.getElementById(customWrapId);
+  if (!wrap) return;
+  wrap.classList.toggle('visible', sel.value === '__custom__');
+  if (sel.value === '__custom__') {
+    const inp = wrap.querySelector('input');
+    if (inp) setTimeout(()=>inp.focus(), 50);
+  }
+}
+
+function getArchValue(selectId, customWrapId) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return '';
+  if (sel.value === '__custom__') {
+    const wrap = document.getElementById(customWrapId);
+    return wrap ? (wrap.querySelector('input')?.value?.trim() || '') : '';
+  }
+  return sel.value;
+}
+
+function setArchValue(selectId, customWrapId, value) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  const opt = Array.from(sel.options).find(o => o.value === value);
+  if (opt) {
+    sel.value = value;
+    const wrap = document.getElementById(customWrapId);
+    if (wrap) wrap.classList.remove('visible');
+  } else if (value) {
+    sel.value = '__custom__';
+    const wrap = document.getElementById(customWrapId);
+    if (wrap) {
+      wrap.classList.add('visible');
+      const inp = wrap.querySelector('input');
+      if (inp) inp.value = value;
+    }
+  } else {
+    sel.value = '';
+  }
+}
+
+// ── Navigation ─────────────────────────────────────────────────────────────────
 function nav(page) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item[data-page]').forEach(b => b.classList.toggle('active', b.dataset.page===page));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item[data-page], .sidebar-item[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
   document.getElementById('page-'+page).classList.add('active');
   document.getElementById('content').scrollTop = 0;
   if (page==='dash')   loadDash();
@@ -954,7 +817,7 @@ function nav(page) {
   if (page==='roster') loadRosterPage();
 }
 
-// ── API ─────────────────────────────────────────────────────────────────────
+// ── API ─────────────────────────────────────────────────────────────────────────
 async function api(path, method='GET', body=null) {
   const opts = {method, headers:{'Content-Type':'application/json'}};
   if (body) opts.body = JSON.stringify(body);
@@ -963,65 +826,63 @@ async function api(path, method='GET', body=null) {
   return r.status===204 ? null : r.json();
 }
 
-// ── Toast ───────────────────────────────────────────────────────────────────
+// ── Toast ───────────────────────────────────────────────────────────────────────
 function toast(msg, type='success') {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'show '+type;
-  clearTimeout(t._t); t._t = setTimeout(()=>t.className='', 2500);
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='show '+type;
+  clearTimeout(t._t); t._t=setTimeout(()=>t.className='',2500);
 }
 
-// ── Mana pips ───────────────────────────────────────────────────────────────
+// ── Pips ────────────────────────────────────────────────────────────────────────
 function pipsHtml(colors='') {
-  const u = (colors||'').toUpperCase();
-  const order = ['W','U','B','R','G'];
-  const found = order.filter(c=>u.includes(c));
-  if (!found.length) return u.includes('C') ? `<span class="pip pip-C">C</span>` : '';
+  const u=(colors||'').toUpperCase();
+  const found=['W','U','B','R','G'].filter(c=>u.includes(c));
+  if (!found.length) return u.includes('C')?`<span class="pip pip-C">C</span>`:'';
   return found.map(c=>`<span class="pip pip-${c}">${c}</span>`).join('');
 }
-
 function wcTagClass(wc='') {
-  const w = wc.toLowerCase();
-  if (w.includes('combo'))   return 'combo';
-  if (w.includes('combat')||w.includes('commander')) return 'combat';
-  if (w.includes('drain')||w.includes('life'))       return 'drain';
-  if (w.includes('mill'))    return 'mill';
-  if (w.includes('poison')||w.includes('infect'))    return 'poison';
+  const w=wc.toLowerCase();
+  if(w.includes('combo'))return 'combo';
+  if(w.includes('combat')||w.includes('commander'))return 'combat';
+  if(w.includes('drain')||w.includes('life'))return 'drain';
+  if(w.includes('mill'))return 'mill';
+  if(w.includes('poison')||w.includes('infect'))return 'poison';
   return '';
 }
+function plLabel(pl) {
+  const m={1:'Casual',2:'Upgraded',3:'Focused',4:'Optimised',5:'CEDH'};
+  return pl ? `PL${pl} · ${m[pl]||''}` : '';
+}
 
-// ── DASHBOARD ───────────────────────────────────────────────────────────────
+// ── DASHBOARD ────────────────────────────────────────────────────────────────────
 async function loadDash() {
-  // Date
   document.getElementById('dash-date').textContent = new Date().toLocaleDateString('en-SE',{weekday:'short',month:'short',day:'numeric'});
   try {
     stats = await api('/api/stats');
     document.getElementById('s-games').textContent = stats.total_games;
     document.getElementById('s-wins').textContent  = stats.total_wins;
     document.getElementById('s-wr').textContent    = stats.win_rate+'%';
-
     const rl = document.getElementById('recent-list');
     if (!stats.recent_games?.length) {
-      rl.innerHTML = `<div class="empty-state"><span class="empty-icon">🎲</span>No games yet — tap Log Game to start!</div>`;
+      rl.innerHTML=`<div class="empty-state"><span class="empty-icon">🎲</span>No games yet — tap Log Game to start!</div>`;
     } else {
       rl.innerHTML = stats.recent_games.slice(0,6).map(gameItemHtml).join('');
     }
-
     const wc = document.getElementById('wc-chart');
-    if (!stats.win_conditions?.length) { wc.innerHTML = `<div class="empty-state" style="padding:16px 0">No data yet</div>`; return; }
-    const max = stats.win_conditions[0].count;
-    const pal = ['#d4a847','#8a50ff','#f05050','#4080c8','#34d474','#f09040','#e040a0','#40c0d0'];
+    if (!stats.win_conditions?.length) { wc.innerHTML=`<div class="empty-state" style="padding:16px 0">No data yet</div>`; return; }
+    const max=stats.win_conditions[0].count;
+    const pal=['#d4a847','#8a50ff','#f05050','#4080c8','#34d474','#f09040','#e040a0','#40c0d0'];
     wc.innerHTML = stats.win_conditions.map((w,i)=>`
       <div class="bar-row">
         <div class="bar-lbl">${w.win_condition}</div>
         <div class="bar-track"><div class="bar-fill" style="width:${Math.round(w.count/max*100)}%;background:${pal[i%pal.length]}">${w.count}</div></div>
         <div class="bar-ct">${w.count}</div>
       </div>`).join('');
-  } catch(e) { toast(e.message,'error'); }
+  } catch(e){toast(e.message,'error');}
 }
-
 function gameItemHtml(g) {
-  const won = g.i_won==1;
-  const opps = [g.opp1_commander,g.opp2_commander,g.opp3_commander].filter(Boolean).join(', ')||'—';
+  const won=g.i_won==1;
+  const opps=[g.opp1_commander,g.opp2_commander,g.opp3_commander].filter(Boolean).join(', ')||'—';
   return `<div class="game-item">
     <div class="outcome-dot ${won?'won':'lost'}">${won?'W':'L'}</div>
     <div class="game-body">
@@ -1034,31 +895,25 @@ function gameItemHtml(g) {
   </div>`;
 }
 
-// ── DECKS PAGE ───────────────────────────────────────────────────────────────
+// ── DECKS PAGE ───────────────────────────────────────────────────────────────────
 async function loadDecksPage() {
   try {
     [decks, stats] = await Promise.all([api('/api/decks'), api('/api/stats')]);
-    const ds = {}; (stats.deck_stats||[]).forEach(d=>ds[d.id]=d);
-    const el = document.getElementById('decks-list');
-    if (!decks.length) {
-      el.innerHTML = `<div class="empty-state"><span class="empty-icon">🃏</span>No decks yet — add your first!</div>`;
-      return;
-    }
+    const ds={}; (stats.deck_stats||[]).forEach(d=>ds[d.id]=d);
+    const el=document.getElementById('decks-list');
+    if (!decks.length) { el.innerHTML=`<div class="empty-state"><span class="empty-icon">🃏</span>No decks yet — add your first!</div>`; return; }
     el.innerHTML = decks.map(d=>{
-      const st = ds[d.id]||{}; const wp = st.win_pct||0;
-      const bc = wp>=50?'var(--win)':wp>=30?'var(--gold)':'var(--loss)';
+      const st=ds[d.id]||{}; const wp=st.win_pct||0;
+      const bc=wp>=50?'var(--win)':wp>=30?'var(--gold)':'var(--loss)';
       return `<div class="deck-card" onclick="editDeck(${d.id})">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-          <div>
-            <div class="deck-name">${d.name}</div>
-            <div class="deck-cmd">${d.commander}${d.partner?' + '+d.partner:''}</div>
-          </div>
-          <div class="pips" style="margin-top:2px;">${pipsHtml(d.colors)}</div>
+          <div><div class="deck-name">${d.name}</div><div class="deck-cmd">${d.commander}${d.partner?' + '+d.partner:''}</div></div>
+          <div class="pips" style="margin-top:2px;">${pipsHtml(d.color_identity)}</div>
         </div>
         <div class="deck-tags">
           <span class="tag tag-arch">${d.archetype}</span>
           <span class="tag ${d.status==='Active'?'tag-active':'tag-retired'}">${d.status}</span>
-          ${d.power_level?`<span class="tag tag-pl">PL ${d.power_level}</span>`:''}
+          ${d.power_level?`<span class="tag tag-pl">${plLabel(d.power_level)}</span>`:''}
         </div>
         ${st.games_played?`<div class="win-bar-bg"><div class="win-bar-fill" style="width:${wp}%;background:${bc}"></div></div>`:''}
         <div class="deck-stats-strip">
@@ -1069,35 +924,42 @@ async function loadDecksPage() {
         </div>
       </div>`;
     }).join('');
-  } catch(e) { toast(e.message,'error'); }
+  } catch(e){toast(e.message,'error');}
 }
 
 function editDeck(id) {
-  const d = decks.find(d=>d.id===id); if (!d) return;
-  document.getElementById('deck-sheet-title').textContent = 'Edit Deck';
-  document.getElementById('dm-id').value      = d.id;
-  document.getElementById('dm-name').value    = d.name;
-  document.getElementById('dm-cmd').value     = d.commander;
-  document.getElementById('dm-partner').value = d.partner||'';
-  document.getElementById('dm-colors').value  = d.colors;
-  document.getElementById('dm-ci').value      = d.color_identity;
-  document.getElementById('dm-arch').value    = d.archetype;
-  document.getElementById('dm-pl').value      = d.power_level||'';
-  document.getElementById('dm-status').value  = d.status;
-  document.getElementById('dm-notes').value   = d.notes||'';
+  const d=decks.find(d=>d.id===id); if (!d) return;
+  document.getElementById('deck-sheet-title').textContent='Edit Deck';
+  document.getElementById('dm-id').value    = d.id;
+  document.getElementById('dm-name').value  = d.name;
+  document.getElementById('dm-cmd').value   = d.commander;
+  document.getElementById('dm-ci').value    = d.color_identity;
+  setArchValue('dm-arch','dm-arch-custom', d.archetype);
+  document.getElementById('dm-pl').value    = d.power_level||'';
+  document.getElementById('dm-status').value= d.status;
+  document.getElementById('dm-notes').value = d.notes||'';
+  // Partner
+  if (d.partner) {
+    document.getElementById('dm-partner').value = d.partner;
+    document.getElementById('dm-partner-row').classList.add('visible');
+  } else {
+    document.getElementById('dm-partner').value = '';
+    document.getElementById('dm-partner-row').classList.remove('visible');
+  }
   document.getElementById('sheet-deck').classList.add('open');
+  setTimeout(initAllAC, 100);
 }
 
-// ── LOG PAGE ─────────────────────────────────────────────────────────────────
+// ── LOG PAGE ──────────────────────────────────────────────────────────────────────
 async function loadLogPage() {
   try {
     games = await api('/api/games');
-    const el = document.getElementById('games-full-list');
+    const el=document.getElementById('games-full-list');
     if (!games.length) { el.innerHTML=`<div class="empty-state"><span class="empty-icon">📜</span>No games logged yet.</div>`; return; }
     el.innerHTML = `<div class="card">`+games.map((g,i)=>{
-      const won = g.i_won==1;
-      const opps = [g.opp1_commander,g.opp2_commander,g.opp3_commander].filter(Boolean).join(', ')||'—';
-      return `<div class="game-item" style="${i===0?'':''}">
+      const won=g.i_won==1;
+      const opps=[g.opp1_commander,g.opp2_commander,g.opp3_commander].filter(Boolean).join(', ')||'—';
+      return `<div class="game-item">
         <div class="outcome-dot ${won?'won':'lost'}">${won?'W':'L'}</div>
         <div class="game-body">
           <div class="game-deck-name">${g.deck_name||'—'}</div>
@@ -1112,61 +974,110 @@ async function loadLogPage() {
         </div>
       </div>`;
     }).join('')+'</div>';
-  } catch(e) { toast(e.message,'error'); }
+  } catch(e){toast(e.message,'error');}
 }
-
-async function delGame(e, id) {
+async function delGame(e,id){
   e.stopPropagation();
   if (!confirm('Delete this game?')) return;
   try { await api(`/api/games/${id}`,'DELETE'); toast('Deleted'); loadLogPage(); } catch(e){toast(e.message,'error');}
 }
 
-// ── ROSTER PAGE ──────────────────────────────────────────────────────────────
+// ── ROSTER PAGE ───────────────────────────────────────────────────────────────────
 async function loadRosterPage() {
   try {
     opponents = await api('/api/opponents');
-    const el = document.getElementById('roster-list');
-    if (!opponents.length) { el.innerHTML=`<div class="empty-state"><span class="empty-icon">👥</span>No opponents added yet.</div>`; return; }
+    const el=document.getElementById('roster-list');
+    if (!opponents.length) { el.innerHTML=`<div class="empty-state"><span class="empty-icon">👥</span>No opponents yet.</div>`; return; }
     el.innerHTML = opponents.map(o=>`
       <div class="opp-card">
         <div class="pips" style="min-width:52px">${pipsHtml(o.colors)}</div>
         <div class="opp-info">
           <div class="opp-name">${o.name}</div>
-          <div class="opp-sub">${[o.commander, o.archetype, o.power_level?'PL '+o.power_level:null].filter(Boolean).join(' · ')||'—'}</div>
+          <div class="opp-sub">${[o.commander,o.archetype,o.power_level?plLabel(o.power_level):null].filter(Boolean).join(' · ')||'—'}</div>
           ${o.notes?`<div style="font-size:0.75rem;color:var(--t3);margin-top:2px;font-style:italic">${o.notes}</div>`:''}
         </div>
         <button class="btn btn-danger btn-icon btn-sm" onclick="delOpp(${o.id})" style="width:34px;height:34px;font-size:0.8rem;">✕</button>
       </div>`).join('');
-  } catch(e) { toast(e.message,'error'); }
+  } catch(e){toast(e.message,'error');}
 }
-
-async function delOpp(id) {
+async function delOpp(id){
   if (!confirm('Remove this opponent?')) return;
   try { await api(`/api/opponents/${id}`,'DELETE'); toast('Removed'); loadRosterPage(); } catch(e){toast(e.message,'error');}
 }
 
-// ── DECK SHEET ────────────────────────────────────────────────────────────────
+// ── DECK SHEET ────────────────────────────────────────────────────────────────────
 function openDeckSheet() {
-  document.getElementById('deck-sheet-title').textContent = 'New Deck';
-  ['dm-id','dm-name','dm-cmd','dm-partner','dm-colors','dm-pl','dm-notes'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('dm-ci').value = '';
-  document.getElementById('dm-arch').value = '';
-  document.getElementById('dm-status').value = 'Active';
+  document.getElementById('deck-sheet-title').textContent='New Deck';
+  ['dm-id','dm-name','dm-cmd','dm-partner','dm-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('dm-ci').value='';
+  document.getElementById('dm-arch').value='';
+  document.getElementById('dm-arch-custom').classList.remove('visible');
+  document.getElementById('dm-pl').value='';
+  document.getElementById('dm-status').value='Active';
+  document.getElementById('dm-partner-row').classList.remove('visible');
   document.getElementById('sheet-deck').classList.add('open');
+  setTimeout(initAllAC, 100);
+}
+
+// Called when commander is selected in deck sheet — detect partner, auto-fill color identity
+async function onDeckCmdSelected(name) {
+  const card = await fetchCard(name);
+  if (!card) return;
+
+  // Auto-fill color identity
+  if (card.color_identity) {
+    const ci = colorIdentityToSelect(card.color_identity);
+    const ciSel = document.getElementById('dm-ci');
+    if (ciSel) {
+      const opt = Array.from(ciSel.options).find(o=>o.value===ci||o.textContent===ci);
+      if (opt) ciSel.value = opt.value;
+    }
+  }
+
+  // Detect partner type
+  const pt = detectPartnerType(card);
+  const row = document.getElementById('dm-partner-row');
+  const lbl = document.getElementById('dm-partner-label');
+  const badge = document.getElementById('dm-partner-badge');
+
+  if (pt === 'partner_with') {
+    // Specific partner — auto-fill partner field and lock it
+    const partnerName = extractPartnerWith(card);
+    row.classList.add('visible');
+    lbl.textContent = 'Partner With';
+    badge.innerHTML = '';
+    if (partnerName) {
+      document.getElementById('dm-partner').value = partnerName;
+      document.getElementById('dm-partner').readOnly = true;
+    }
+  } else if (pt) {
+    row.classList.add('visible');
+    lbl.textContent = 'Partner Commander';
+    badge.innerHTML = `<span class="partner-badge ${partnerBadgeClass(pt)}">${partnerTypeLabel(pt)}</span>`;
+    document.getElementById('dm-partner').readOnly = false;
+    document.getElementById('dm-partner').value = '';
+    // Re-mount AC on partner field with appropriate filter
+    mountAC('dm-partner', null, pt);
+  } else {
+    row.classList.remove('visible');
+    document.getElementById('dm-partner').value = '';
+    document.getElementById('dm-partner').readOnly = false;
+  }
 }
 
 async function saveDeck() {
-  const id = document.getElementById('dm-id').value;
+  const id=document.getElementById('dm-id').value;
+  const archetype = getArchValue('dm-arch','dm-arch-custom');
   const body = {
-    name: document.getElementById('dm-name').value.trim(),
-    commander: document.getElementById('dm-cmd').value.trim(),
-    partner: document.getElementById('dm-partner').value.trim()||null,
-    colors: document.getElementById('dm-colors').value.trim().toUpperCase(),
+    name:           document.getElementById('dm-name').value.trim(),
+    commander:      document.getElementById('dm-cmd').value.trim(),
+    partner:        document.getElementById('dm-partner').value.trim()||null,
+    colors:         '', // removed field
     color_identity: document.getElementById('dm-ci').value,
-    archetype: document.getElementById('dm-arch').value,
-    power_level: parseInt(document.getElementById('dm-pl').value)||null,
-    status: document.getElementById('dm-status').value,
-    notes: document.getElementById('dm-notes').value.trim()||null,
+    archetype,
+    power_level:    parseInt(document.getElementById('dm-pl').value)||null,
+    status:         document.getElementById('dm-status').value,
+    notes:          document.getElementById('dm-notes').value.trim()||null,
   };
   if (!body.name||!body.commander||!body.color_identity||!body.archetype) { toast('Fill in required fields','error'); return; }
   try {
@@ -1174,348 +1085,298 @@ async function saveDeck() {
     else    await api('/api/decks','POST',body);
     toast(id?'Deck updated! ✓':'Deck added! ✓');
     closeSheet('sheet-deck'); loadDecksPage();
-  } catch(e) { toast(e.message,'error'); }
+  } catch(e){toast(e.message,'error');}
 }
 
-// ── GAME SHEET (step wizard) ──────────────────────────────────────────────────
+// ── GAME SHEET ────────────────────────────────────────────────────────────────────
 async function openGameSheet() {
-  if (!decks.length || !decks.find) decks = await api('/api/decks').catch(()=>[]);
+  if (!decks.length) decks = await api('/api/decks').catch(()=>[]);
 
-  // Populate arch selects
+  // Build archetype selects for opponents
   ['o1a','o2a','o3a'].forEach(id=>{
-    const el = document.getElementById(id);
-    el.innerHTML = '<option value="">—</option>'+ARCHETYPES.map(a=>`<option>${a}</option>`).join('');
+    buildArchSelect(id, id+'-wrap', `handleArchChange(this,'${id}-custom')`);
   });
 
-  // Populate WC grid
+  // WC grid
   document.getElementById('wc-grid').innerHTML = WIN_CONDITIONS.map(w=>
-    `<button class="wc-btn" data-wc="${w.label}" onclick="selectWC(this,'${w.label}')">${w.label}</button>`
+    `<button class="wc-btn" onclick="selectWC(this,'${w.label}')">${w.label}</button>`
   ).join('');
 
   // Deck picker
-  const active = decks.filter(d=>d.status==='Active');
+  const active=decks.filter(d=>d.status==='Active');
   document.getElementById('deck-pick-list').innerHTML = active.length
     ? active.map(d=>`<button class="deck-pick-btn" data-id="${d.id}" onclick="pickDeck(this,${d.id})">
-        <div class="pips">${pipsHtml(d.colors)}</div>
-        <div class="deck-pick-info">
-          <div class="deck-pick-name">${d.name}</div>
-          <div class="deck-pick-sub">${d.commander}</div>
-        </div>
+        <div class="pips">${pipsHtml(d.color_identity)}</div>
+        <div class="deck-pick-info"><div class="deck-pick-name">${d.name}</div><div class="deck-pick-sub">${d.commander}</div></div>
       </button>`).join('')
     : '<div class="empty-state" style="padding:16px 0">No active decks. Add one first!</div>';
 
-  // Reset state
-  gameState = {step:1, deckId:null, won:null, wc:''};
-  document.getElementById('btn-win').className = 'outcome-btn';
-  document.getElementById('btn-loss').className = 'outcome-btn';
-  ['o1c','o2c','o3c','g-winner','g-loc','g-notes'].forEach(id=>document.getElementById(id).value='');
-  ['o1a','o2a','o3a'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('g-date').value = new Date().toISOString().slice(0,10);
+  // Reset
+  gameState={step:1,deckId:null,won:null,wc:''};
+  document.getElementById('btn-win').className='outcome-btn';
+  document.getElementById('btn-loss').className='outcome-btn';
+  ['o1c','o2c','o3c','o1p','o2p','o3p','g-winner','g-loc','g-notes'].forEach(id=>{
+    const el=document.getElementById(id); if(el){el.value='';el.readOnly=false;}
+  });
+  ['o1-partner-row','o2-partner-row','o3-partner-row'].forEach(id=>document.getElementById(id).classList.remove('visible'));
+  document.getElementById('g-date').value=new Date().toISOString().slice(0,10);
 
   renderGameStep(1);
   document.getElementById('sheet-game').classList.add('open');
+  setTimeout(initAllAC, 100);
 }
 
-function pickDeck(btn, id) {
+function pickDeck(btn,id){
   document.querySelectorAll('.deck-pick-btn').forEach(b=>b.classList.remove('selected'));
-  btn.classList.add('selected');
-  gameState.deckId = id;
+  btn.classList.add('selected'); gameState.deckId=id;
 }
-
-function setOutcome(val) {
-  gameState.won = val;
-  document.getElementById('btn-win').className  = 'outcome-btn'+(val===1?' sel-win':'');
-  document.getElementById('btn-loss').className = 'outcome-btn'+(val===0?' sel-loss':'');
+function setOutcome(val){
+  gameState.won=val;
+  document.getElementById('btn-win').className ='outcome-btn'+(val===1?' sel-win':'');
+  document.getElementById('btn-loss').className='outcome-btn'+(val===0?' sel-loss':'');
 }
-
-function selectWC(btn, wc) {
+function selectWC(btn,wc){
   document.querySelectorAll('.wc-btn').forEach(b=>b.classList.remove('selected'));
-  btn.classList.add('selected');
-  gameState.wc = wc;
-  // auto-fill winner field if blank
-  const wf = document.getElementById('g-winner');
-  if (!wf.value && gameState.won===1 && gameState.deckId) {
-    const d = decks.find(d=>d.id===gameState.deckId);
-    if (d) wf.value = d.commander;
+  btn.classList.add('selected'); gameState.wc=wc;
+  if (!document.getElementById('g-winner').value && gameState.won===1 && gameState.deckId) {
+    const d=decks.find(d=>d.id===gameState.deckId);
+    if (d) document.getElementById('g-winner').value=d.commander;
   }
 }
 
-function renderGameStep(step) {
-  const total = 4;
-  document.querySelectorAll('.step-panel').forEach((p,i)=>p.classList.toggle('active', i===step-1));
-  document.getElementById('game-sheet-body').scrollTop = 0;
+// Called when an opponent commander is selected — show partner row if applicable
+async function onOppCmdSelected(num, name) {
+  const card = await fetchCard(name);
+  const pt = detectPartnerType(card);
+  const row = document.getElementById(`o${num}-partner-row`);
+  const lbl = document.getElementById(`o${num}-partner-label`);
 
-  // Step dots
-  document.getElementById('step-dots').innerHTML = Array.from({length:total},(_,i)=>{
-    const cls = i+1===step ? 'active' : i+1<step ? 'done' : '';
+  if (pt === 'partner_with' && card) {
+    const partnerName = extractPartnerWith(card);
+    row.classList.add('visible');
+    lbl.textContent = `P${num} Partner With`;
+    const pinput = document.getElementById(`o${num}p`);
+    if (pinput && partnerName) { pinput.value = partnerName; pinput.readOnly = true; }
+  } else if (pt) {
+    row.classList.add('visible');
+    lbl.textContent = `Opp ${num} Partner — ${partnerTypeLabel(pt)}`;
+    const pinput = document.getElementById(`o${num}p`);
+    if (pinput) { pinput.readOnly = false; pinput.value = ''; }
+    mountAC(`o${num}p`, null, pt);
+  } else {
+    row.classList.remove('visible');
+    const pinput = document.getElementById(`o${num}p`);
+    if (pinput) { pinput.value = ''; pinput.readOnly = false; }
+  }
+}
+
+function renderGameStep(step){
+  document.querySelectorAll('.step-panel').forEach((p,i)=>p.classList.toggle('active',i===step-1));
+  document.getElementById('game-sheet-body').scrollTop=0;
+  const total=4;
+  document.getElementById('step-dots').innerHTML=Array.from({length:total},(_,i)=>{
+    const cls=i+1===step?'active':i+1<step?'done':'';
     return `<div class="step-dot ${cls}"></div>`;
   }).join('');
-
-  const titles = ['1. My Deck & Result','2. Opponents','3. How It Ended','4. Details'];
-  document.getElementById('game-sheet-title').textContent = titles[step-1];
-
-  const backBtn = document.getElementById('game-back-btn');
-  const nextBtn = document.getElementById('game-next-btn');
-  backBtn.style.display = step>1 ? '' : 'none';
-  nextBtn.textContent = step===total ? '✓ Save Game' : 'Next →';
-  nextBtn.className = 'btn btn-gold'+(step===total ? ' btn-full' : ' btn-full');
+  const titles=['1. My Deck & Result','2. Opponents','3. How It Ended','4. Details'];
+  document.getElementById('game-sheet-title').textContent=titles[step-1];
+  const back=document.getElementById('game-back-btn');
+  const next=document.getElementById('game-next-btn');
+  back.style.display=step>1?'':'none';
+  next.textContent=step===total?'✓ Save Game':'Next →';
 }
-
-function gameStep(dir) {
-  const step = gameState.step + dir;
-  if (dir===1 && gameState.step===4) { saveGame(); return; }
-  if (dir===1 && gameState.step===1 && gameState.won===null) { toast('Pick a result first','error'); return; }
-  if (step<1 || step>4) return;
-  gameState.step = step;
-  renderGameStep(step);
+function gameStep(dir){
+  const step=gameState.step+dir;
+  if (dir===1&&gameState.step===4){saveGame();return;}
+  if (dir===1&&gameState.step===1&&gameState.won===null){toast('Pick a result first','error');return;}
+  if (step<1||step>4) return;
+  gameState.step=step; renderGameStep(step);
 }
-
-async function saveGame() {
-  const body = {
-    date: document.getElementById('g-date').value,
-    location: document.getElementById('g-loc').value.trim()||null,
-    my_deck_id: gameState.deckId,
-    opp1_commander: document.getElementById('o1c').value.trim()||null,
-    opp1_archetype: document.getElementById('o1a').value||null,
-    opp2_commander: document.getElementById('o2c').value.trim()||null,
-    opp2_archetype: document.getElementById('o2a').value||null,
-    opp3_commander: document.getElementById('o3c').value.trim()||null,
-    opp3_archetype: document.getElementById('o3a').value||null,
+async function saveGame(){
+  const body={
+    date:             document.getElementById('g-date').value,
+    location:         document.getElementById('g-loc').value.trim()||null,
+    my_deck_id:       gameState.deckId,
+    opp1_commander:   document.getElementById('o1c').value.trim()||null,
+    opp1_archetype:   getArchValue('o1a','o1a-custom'),
+    opp2_commander:   document.getElementById('o2c').value.trim()||null,
+    opp2_archetype:   getArchValue('o2a','o2a-custom'),
+    opp3_commander:   document.getElementById('o3c').value.trim()||null,
+    opp3_archetype:   getArchValue('o3a','o3a-custom'),
     winner_commander: document.getElementById('g-winner').value.trim()||null,
-    win_condition: gameState.wc||null,
-    i_won: gameState.won===1?1:0,
-    notes: document.getElementById('g-notes').value.trim()||null,
+    win_condition:    gameState.wc||null,
+    i_won:            gameState.won===1?1:0,
+    notes:            document.getElementById('g-notes').value.trim()||null,
   };
-  if (!body.date) { toast('Date is required','error'); return; }
+  if (!body.date){toast('Date is required','error');return;}
   try {
     await api('/api/games','POST',body);
-    toast(gameState.won===1 ? '🏆 Win logged!' : '💀 Game logged!');
-    closeSheet('sheet-game');
-    loadDash();
-  } catch(e) { toast(e.message,'error'); }
+    toast(gameState.won===1?'🏆 Win logged!':'💀 Game logged!');
+    closeSheet('sheet-game'); loadDash();
+  } catch(e){toast(e.message,'error');}
 }
 
-// ── OPPONENT SHEET ────────────────────────────────────────────────────────────
-function openOppSheet() {
-  ['om-name','om-cmd','om-colors','om-pl','om-notes'].forEach(id=>document.getElementById(id).value='');
+// ── OPPONENT SHEET ────────────────────────────────────────────────────────────────
+function openOppSheet(){
+  ['om-name','om-cmd','om-notes'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('om-arch').value='';
+  document.getElementById('om-arch-custom').classList.remove('visible');
+  document.getElementById('om-pl').value='';
   document.getElementById('sheet-opp').classList.add('open');
+  setTimeout(initAllAC,100);
 }
-
-async function saveOpponent() {
-  const body = {
-    name: document.getElementById('om-name').value.trim(),
-    commander: document.getElementById('om-cmd').value.trim()||null,
-    colors: document.getElementById('om-colors').value.trim()||null,
-    archetype: document.getElementById('om-arch').value||null,
+async function saveOpponent(){
+  const archetype = getArchValue('om-arch','om-arch-custom');
+  const body={
+    name:        document.getElementById('om-name').value.trim(),
+    commander:   document.getElementById('om-cmd').value.trim()||null,
+    colors:      null,
+    archetype:   archetype||null,
     power_level: parseInt(document.getElementById('om-pl').value)||null,
-    notes: document.getElementById('om-notes').value.trim()||null,
+    notes:       document.getElementById('om-notes').value.trim()||null,
   };
-  if (!body.name) { toast('Name is required','error'); return; }
+  if (!body.name){toast('Name is required','error');return;}
   try {
     await api('/api/opponents','POST',body);
     toast('Opponent added!');
     closeSheet('sheet-opp'); loadRosterPage();
-  } catch(e) { toast(e.message,'error'); }
+  } catch(e){toast(e.message,'error');}
 }
 
-// ── Sheet helpers ─────────────────────────────────────────────────────────────
-function closeSheet(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.sheet-overlay').forEach(o=>{
-  o.addEventListener('click', e=>{ if(e.target===o) o.classList.remove('open'); });
-});
-
-
-// ── SCRYFALL COMMANDER AUTOCOMPLETE ──────────────────────────────────────────
-// Scryfall autocomplete endpoint — no API key needed, rate limit: 50–100 ms debounce is fine
-const SCRYFALL_AC = 'https://api.scryfall.com/cards/autocomplete?include_extras=false&q=';
-const SCRYFALL_NAMED = 'https://api.scryfall.com/cards/named?exact=';
-
-// Cache to avoid redundant requests
-const acCache = new Map();
-
-// Fetch autocomplete suggestions from Scryfall, filtered to legendary creatures
-async function scryfallSuggest(query) {
-  const q = query.trim();
-  if (q.length < 2) return [];
-  if (acCache.has(q)) return acCache.get(q);
-
-  try {
-    const r = await fetch(SCRYFALL_AC + encodeURIComponent(q));
-    if (!r.ok) return [];
-    const data = await r.json();
-    const names = (data.data || []).slice(0, 12);
-    acCache.set(q, names);
-    return names;
-  } catch { return []; }
-}
-
-// Highlight matching portion of text
+// ── AUTOCOMPLETE ENGINE ───────────────────────────────────────────────────────────
 function acHighlight(name, query) {
-  const idx = name.toLowerCase().indexOf(query.toLowerCase());
-  if (idx < 0) return name;
-  return name.slice(0, idx) + '<strong>' + name.slice(idx, idx + query.length) + '</strong>' + name.slice(idx + query.length);
+  const idx=name.toLowerCase().indexOf(query.toLowerCase());
+  if (idx<0) return name;
+  return name.slice(0,idx)+'<strong>'+name.slice(idx,idx+query.length)+'</strong>'+name.slice(idx+query.length);
 }
 
-// Mount autocomplete on an input element by ID
-// onSelect(name) called when user picks a suggestion
-function mountAC(inputId, onSelect) {
-  const input = document.getElementById(inputId);
+// partnerType: if set, constrains the AC search to valid partners of that type
+function mountAC(inputId, onSelect, partnerType) {
+  const input=document.getElementById(inputId);
   if (!input) return;
+  // Unmount previous instance if any
+  if (input._acDestroy) input._acDestroy();
 
-  let debounceTimer = null;
-  let dropdown = null;
-  let activeIdx = -1;
-  let currentSuggestions = [];
+  let timer=null, dropdown=null, activeIdx=-1, suggestions=[];
 
-  function removeDropdown() {
-    if (dropdown) { dropdown.remove(); dropdown = null; }
+  function removeDD(){
+    if (dropdown){dropdown.remove();dropdown=null;}
     input.classList.remove('ac-loading');
-    activeIdx = -1;
-    currentSuggestions = [];
+    activeIdx=-1; suggestions=[];
   }
 
-  function renderDropdown(names, query) {
-    removeDropdown();
-    if (!names.length) {
-      // Show no-results only if user typed something
-      if (query.length >= 2) {
-        dropdown = document.createElement('div');
-        dropdown.className = 'ac-dropdown';
-        dropdown.innerHTML = `<div class="ac-no-results">No commanders found for "${query}"</div>
-          <div class="ac-footer">Powered by Scryfall</div>`;
+  function renderDD(names, query){
+    removeDD();
+    if (!names.length){
+      if (query.length>=2){
+        dropdown=document.createElement('div');
+        dropdown.className='ac-dropdown';
+        dropdown.innerHTML=`<div class="ac-no-results">No results for "${query}"</div><div class="ac-footer">Powered by Scryfall</div>`;
         input.closest('.ac-wrap').appendChild(dropdown);
       }
       return;
     }
-    currentSuggestions = names;
-    dropdown = document.createElement('div');
-    dropdown.className = 'ac-dropdown';
-
-    const list = names.map((name, i) => `
-      <div class="ac-item" data-idx="${i}" data-name="${name.replace(/"/g,'&quot;')}">
-        <div class="ac-item-name">${acHighlight(name, query)}</div>
-      </div>`).join('');
-
-    dropdown.innerHTML = list + `<div class="ac-footer">Powered by Scryfall</div>`;
+    suggestions=names;
+    dropdown=document.createElement('div');
+    dropdown.className='ac-dropdown';
+    dropdown.innerHTML=names.map((n,i)=>`<div class="ac-item" data-idx="${i}" data-name="${n.replace(/"/g,'&quot;')}">${acHighlight(n,query)}</div>`).join('')+`<div class="ac-footer">Powered by Scryfall</div>`;
     input.closest('.ac-wrap').appendChild(dropdown);
-
-    // Touch / click handler
-    dropdown.addEventListener('mousedown', e => {
-      const item = e.target.closest('.ac-item');
-      if (!item) return;
-      e.preventDefault();
-      select(item.dataset.name);
-    });
-    dropdown.addEventListener('touchend', e => {
-      const item = e.target.closest('.ac-item');
-      if (!item) return;
-      e.preventDefault();
-      select(item.dataset.name);
-    });
+    dropdown.addEventListener('mousedown',e=>{const it=e.target.closest('.ac-item');if(it){e.preventDefault();select(it.dataset.name);}});
+    dropdown.addEventListener('touchend',e=>{const it=e.target.closest('.ac-item');if(it){e.preventDefault();select(it.dataset.name);}});
   }
 
-  function select(name) {
-    input.value = name;
-    removeDropdown();
+  function select(name){
+    input.value=name; removeDD();
     if (onSelect) onSelect(name);
     input.blur();
   }
 
-  function setActive(idx) {
+  function setActive(idx){
     if (!dropdown) return;
-    const items = dropdown.querySelectorAll('.ac-item');
-    items.forEach((el, i) => el.classList.toggle('ac-active', i === idx));
-    activeIdx = idx;
+    dropdown.querySelectorAll('.ac-item').forEach((el,i)=>el.classList.toggle('ac-active',i===idx));
+    activeIdx=idx;
   }
 
-  input.addEventListener('input', () => {
-    const q = input.value.trim();
-    clearTimeout(debounceTimer);
-    if (q.length < 2) { removeDropdown(); return; }
-
+  function onInput(){
+    const q=input.value.trim(); clearTimeout(timer);
+    if (q.length<2){removeDD();return;}
     input.classList.add('ac-loading');
-    debounceTimer = setTimeout(async () => {
-      const names = await scryfallSuggest(q);
+    timer=setTimeout(async()=>{
+      const names=await scryfallAC(q);
       input.classList.remove('ac-loading');
-      // Only render if input value still matches what we queried
-      if (input.value.trim() === q) renderDropdown(names, q);
-    }, 220);
-  });
+      if (input.value.trim()===q) renderDD(names,q);
+    },220);
+  }
 
-  // Keyboard nav
-  input.addEventListener('keydown', e => {
+  function onKeydown(e){
     if (!dropdown) return;
-    const items = dropdown.querySelectorAll('.ac-item');
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setActive(Math.min(activeIdx + 1, items.length - 1));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setActive(Math.max(activeIdx - 1, 0));
-    } else if (e.key === 'Enter' && activeIdx >= 0) {
-      e.preventDefault();
-      select(currentSuggestions[activeIdx]);
-    } else if (e.key === 'Escape') {
-      removeDropdown();
-    }
-  });
+    const items=dropdown.querySelectorAll('.ac-item');
+    if (e.key==='ArrowDown'){e.preventDefault();setActive(Math.min(activeIdx+1,items.length-1));}
+    else if(e.key==='ArrowUp'){e.preventDefault();setActive(Math.max(activeIdx-1,0));}
+    else if(e.key==='Enter'&&activeIdx>=0){e.preventDefault();select(suggestions[activeIdx]);}
+    else if(e.key==='Escape') removeDD();
+  }
 
-  input.addEventListener('blur', () => {
-    // Small delay so tap on dropdown item fires first
-    setTimeout(removeDropdown, 200);
-  });
+  function onBlur(){ setTimeout(removeDD,200); }
 
-  input.addEventListener('focus', () => {
-    const q = input.value.trim();
-    if (q.length >= 2) {
-      const cached = acCache.get(q);
-      if (cached) renderDropdown(cached, q);
-    }
-  });
+  function onFocus(){
+    const q=input.value.trim();
+    if (q.length>=2){ const c=acCache.get('ac:'+q); if(c) renderDD(c,q); }
+  }
+
+  input.addEventListener('input',onInput);
+  input.addEventListener('keydown',onKeydown);
+  input.addEventListener('blur',onBlur);
+  input.addEventListener('focus',onFocus);
+
+  // Cleanup
+  input._acDestroy=()=>{
+    input.removeEventListener('input',onInput);
+    input.removeEventListener('keydown',onKeydown);
+    input.removeEventListener('blur',onBlur);
+    input.removeEventListener('focus',onFocus);
+    removeDD();
+    delete input._acDestroy;
+    delete input._acMounted;
+  };
+  input._acMounted=true;
 }
 
-// Wire up all commander inputs once DOM is ready
-// Called after each sheet opens so inputs exist
-function initAllAC() {
-  const cmdInputs = [
-    'dm-cmd', 'dm-partner',
-    'o1c', 'o2c', 'o3c',
-    'g-winner',
-    'om-cmd',
-  ];
-  cmdInputs.forEach(id => {
-    const el = document.getElementById(id);
-    // Only mount once (flag on element)
-    if (el && !el._acMounted) {
-      el._acMounted = true;
-
-      // For g-winner, auto-detect if i won and pre-fill my commander
-      if (id === 'g-winner') {
-        mountAC(id, name => {
-          // If we selected a winner and it matches my deck's commander, that's a win
-          if (gameState.deckId && gameState.won === null) {
-            const d = decks.find(d => d.id === gameState.deckId);
-            if (d && d.commander.toLowerCase() === name.toLowerCase()) setOutcome(1);
-          }
-        });
-      } else {
-        mountAC(id);
+function initAllAC(){
+  // Commander inputs — main AC with Scryfall suggestions
+  // For deck commander: callback handles partner detection + color identity
+  const cmdIds = [
+    {id:'dm-cmd',     cb: name=>onDeckCmdSelected(name)},
+    {id:'dm-partner', cb: null},
+    {id:'o1c',        cb: name=>onOppCmdSelected(1,name)},
+    {id:'o2c',        cb: name=>onOppCmdSelected(2,name)},
+    {id:'o3c',        cb: name=>onOppCmdSelected(3,name)},
+    {id:'o1p',        cb: null},
+    {id:'o2p',        cb: null},
+    {id:'o3p',        cb: null},
+    {id:'g-winner',   cb: name=>{
+      if (gameState.deckId&&gameState.won===null){
+        const d=decks.find(d=>d.id===gameState.deckId);
+        if (d&&d.commander.toLowerCase()===name.toLowerCase()) setOutcome(1);
       }
-    }
+    }},
+    {id:'om-cmd',     cb: null},
+  ];
+  cmdIds.forEach(({id,cb})=>{
+    const el=document.getElementById(id);
+    if (el&&!el._acMounted) mountAC(id,cb);
   });
 }
 
-// Re-init on sheet open since inputs may have been re-created
-document.getElementById('sheet-game').addEventListener('transitionend', initAllAC);
-document.getElementById('sheet-deck').addEventListener('transitionend', initAllAC);
-document.getElementById('sheet-opp').addEventListener('transitionend', initAllAC);
-
-// Also init immediately after the initial page load
-setTimeout(initAllAC, 300);
+// ── Sheet helpers ─────────────────────────────────────────────────────────────
+function closeSheet(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.sheet-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{if(e.target===o) o.classList.remove('open');});
+});
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 loadDash();
+setTimeout(initAllAC, 400);
 </script>
 </body>
 </html>
