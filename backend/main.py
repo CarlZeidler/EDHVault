@@ -3,7 +3,7 @@ from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 import sqlite3, os, bcrypt, jwt, datetime, shutil, glob, logging
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -112,7 +112,7 @@ init_db()
 #   • For destructive changes (rename/drop), use a multi-step entry:
 #     create new column → copy data → leave old column (SQLite can't drop columns
 #     directly without recreating the whole table).
-MIGRATIONS: list[str] = [
+MIGRATIONS: List[str] = [
     # v1: baseline schema established by init_db(). No-op, just records the version.
     "SELECT 1",
 
@@ -150,7 +150,7 @@ def run_migrations():
 BACKUP_DIR  = os.environ.get("BACKUP_DIR",  os.path.join(os.path.dirname(DB_PATH) or ".", "backups"))
 BACKUP_KEEP = int(os.environ.get("BACKUP_KEEP", "14"))
 
-def backup_db() -> str | None:
+def backup_db() -> Optional[str]:
     """
     Snapshot the live DB using SQLite's online backup API.
     This is safe even with concurrent writes — SQLite handles it atomically.
