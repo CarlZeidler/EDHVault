@@ -4,7 +4,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from typing import Optional
-import sqlite3, os, bcrypt, jwt, datetime
+import sqlite3, os, bcrypt, jwt, datetime, shutil, glob, logging
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+log = logging.getLogger("edh-vault")
 
 app = FastAPI(title="EDH Vault API")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -100,6 +103,84 @@ def _seed_accounts():
         c.commit()
 
 init_db()
+
+# ── Migrations ────────────────────────────────────────────────────────────────
+# Rules:
+#   • NEVER edit or delete an existing entry — only append new ones.
+#   • Each entry runs exactly once per database, ever.
+#   • Safe operations: ADD COLUMN, CREATE TABLE, CREATE INDEX, UPDATE, INSERT.
+#   • For destructive changes (rename/drop), use a multi-step entry:
+#     create new column → copy data → leave old column (SQLite can't drop columns
+#     directly without recreating the whole table).
+MIGRATIONS: list[str] = [
+    # v1: baseline schema established by init_db(). No-op, just records the version.
+    "SELECT 1",
+
+    # ── Append new migrations below. Never edit lines above this comment. ──────
+    # Example (remove leading # to activate):
+    # "ALTER TABLE decks ADD COLUMN format TEXT DEFAULT 'Commander'",
+    # "ALTER TABLE games ADD COLUMN pod_size INTEGER",
+    # "CREATE INDEX IF NOT EXISTS idx_games_user_date ON games(user_id, date)",
+]
+
+def run_migrations():
+    """Apply any pending migrations in order. Safe to call on every startup."""
+    with get_db() as c:
+        c.execute("""CREATE TABLE IF NOT EXISTS schema_version (
+            version    INTEGER PRIMARY KEY,
+            applied_at TEXT DEFAULT (datetime('now'))
+        )""")
+        row = c.execute("SELECT MAX(version) FROM schema_version").fetchone()
+        current = row[0] or 0
+        pending = [(i + 1, sql) for i, sql in enumerate(MIGRATIONS) if i + 1 > current]
+        if not pending:
+            log.info(f"DB schema up to date (v{current})")
+            return
+        for version, sql in pending:
+            log.info(f"Applying migration v{version}: {sql[:80]}")
+            c.execute(sql)
+            c.execute("INSERT INTO schema_version (version) VALUES (?)", (version,))
+        c.commit()
+        log.info(f"Migrations done: v{current} → v{version}")
+
+# ── Backups ───────────────────────────────────────────────────────────────────
+# BACKUP_DIR: where backups are written. On Render with a persistent disk,
+#   set this to a path on the disk, e.g. /data/backups (via env var).
+# BACKUP_KEEP: number of most-recent backups to retain; older ones are pruned.
+BACKUP_DIR  = os.environ.get("BACKUP_DIR",  os.path.join(os.path.dirname(DB_PATH) or ".", "backups"))
+BACKUP_KEEP = int(os.environ.get("BACKUP_KEEP", "14"))
+
+def backup_db() -> str | None:
+    """
+    Snapshot the live DB using SQLite's online backup API.
+    This is safe even with concurrent writes — SQLite handles it atomically.
+    Returns the backup file path, or None if the DB doesn't exist yet.
+    """
+    if not os.path.exists(DB_PATH):
+        log.info("backup_db: no DB file yet, skipping")
+        return None
+    os.makedirs(BACKUP_DIR, exist_ok=True)
+    ts   = datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    dest = os.path.join(BACKUP_DIR, f"edh_{ts}.db")
+    src = sqlite3.connect(DB_PATH)
+    dst = sqlite3.connect(dest)
+    with dst:
+        src.backup(dst)
+    src.close(); dst.close()
+    log.info(f"Backup written: {dest}")
+    _prune_backups()
+    return dest
+
+def _prune_backups():
+    """Remove oldest backups, keeping only the BACKUP_KEEP most recent."""
+    files = sorted(glob.glob(os.path.join(BACKUP_DIR, "edh_*.db")))
+    for f in files[:max(0, len(files) - BACKUP_KEEP)]:
+        os.remove(f)
+        log.info(f"Pruned backup: {f}")
+
+# Run on every startup
+run_migrations()
+backup_db()
 
 # ── JWT ───────────────────────────────────────────────────────────────────────
 def make_token(user_id: int, username: str, is_admin: bool) -> str:
@@ -397,6 +478,50 @@ def admin_delete_user(uid: int, admin: dict = Depends(current_admin)):
         c.execute("DELETE FROM users WHERE id=?", (uid,))  # CASCADE handles decks/games/opponents
         c.commit()
     return {"deleted": uid}
+
+# ── Admin: backups ───────────────────────────────────────────────────────────
+from fastapi.responses import FileResponse as _FileResponse
+
+@app.get("/api/admin/backups")
+def admin_list_backups(_: dict = Depends(current_admin)):
+    """List available backup files."""
+    os.makedirs(BACKUP_DIR, exist_ok=True)
+    files = sorted(glob.glob(os.path.join(BACKUP_DIR, "edh_*.db")), reverse=True)
+    result = []
+    for f in files:
+        stat = os.stat(f)
+        result.append({
+            "filename": os.path.basename(f),
+            "size_kb":  round(stat.st_size / 1024, 1),
+            "created":  datetime.datetime.utcfromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M UTC"),
+        })
+    return result
+
+@app.post("/api/admin/backups")
+def admin_create_backup(_: dict = Depends(current_admin)):
+    """Manually trigger a backup."""
+    path = backup_db()
+    if not path:
+        raise HTTPException(500, "Database not found — nothing to back up")
+    return {"filename": os.path.basename(path), "message": "Backup created"}
+
+@app.get("/api/admin/backups/{filename}")
+def admin_download_backup(filename: str, _: dict = Depends(current_admin)):
+    """Download a specific backup file."""
+    # Sanitise filename — no path traversal
+    if "/" in filename or "\\" in filename or not filename.endswith(".db"):
+        raise HTTPException(400, "Invalid filename")
+    path = os.path.join(BACKUP_DIR, filename)
+    if not os.path.exists(path):
+        raise HTTPException(404, "Backup not found")
+    return _FileResponse(path, media_type="application/octet-stream",
+                         headers={"Content-Disposition": f"attachment; filename={filename}"})
+
+@app.get("/api/admin/schema_version")
+def admin_schema_version(_: dict = Depends(current_admin)):
+    with get_db() as c:
+        row = c.execute("SELECT MAX(version) as v FROM schema_version").fetchone()
+    return {"version": row["v"] or 0, "total_migrations": len(MIGRATIONS)}
 
 # ── Frontend ──────────────────────────────────────────────────────────────────
 frontend_dir = os.path.join(os.path.dirname(__file__), "..", "frontend")

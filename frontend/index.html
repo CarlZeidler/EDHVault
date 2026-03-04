@@ -413,6 +413,21 @@ body.is-desktop #toast{bottom:24px;}
         </div>
         <div id="admin-users-list" style="padding:12px 16px;"></div>
       </div>
+      <div class="card" style="margin-top:14px;">
+        <div class="card-head">
+          <h2>Database Backups</h2>
+          <span id="admin-schema-ver" style="font-size:0.72rem;color:var(--t3);"></span>
+        </div>
+        <div style="padding:12px 16px;">
+          <p style="font-size:0.82rem;color:var(--t2);margin-bottom:12px;line-height:1.6;">
+            A backup is created automatically on every deploy. Backups are stored on the persistent disk
+            and the last <strong style="color:var(--t1);">14</strong> are kept.
+            Download a backup before making major changes.
+          </p>
+          <button class="btn btn-ghost btn-sm" id="admin-backup-btn" onclick="adminManualBackup()">+ Create Backup Now</button>
+          <div id="admin-backup-list" style="margin-top:14px;"></div>
+        </div>
+      </div>
     </div>
   </div>
   <nav id="bottom-nav">
@@ -1405,6 +1420,65 @@ async function loadAdminPage() {
         </div>
       </div>`).join('');
   } catch(e) { toast(e.message,'error'); }
+  // Load backups section in parallel
+  loadAdminBackups();
+}
+
+// ── Admin: backup panel ──────────────────────────────────────────────────────
+async function loadAdminBackups() {
+  const el = document.getElementById('admin-backup-list');
+  if (!el) return;
+  el.innerHTML = '<div style="color:var(--t3);font-size:0.85rem;padding:8px 0">Loading…</div>';
+  try {
+    const [backups, ver] = await Promise.all([
+      api('/api/admin/backups'),
+      api('/api/admin/schema_version')
+    ]);
+    document.getElementById('admin-schema-ver').textContent =
+      `Schema v${ver.version} · ${ver.total_migrations} migration${ver.total_migrations!==1?'s':''}`;
+    if (!backups.length) {
+      el.innerHTML = '<div style="color:var(--t3);font-size:0.85rem;padding:8px 0;font-style:italic;">No backups yet — one will be created on next deploy.</div>';
+      return;
+    }
+    el.innerHTML = backups.map(b => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--b1);">
+        <div style="flex:1;">
+          <div style="font-size:0.88rem;color:var(--t1);font-weight:600;">${b.filename}</div>
+          <div style="font-size:0.75rem;color:var(--t3);">${b.created} · ${b.size_kb} KB</div>
+        </div>
+        <a href="/api/admin/backups/${b.filename}" 
+           onclick="return downloadBackup(event, '${b.filename}')"
+           class="btn btn-ghost btn-sm" style="text-decoration:none;">⬇ Download</a>
+      </div>`).join('');
+  } catch(e) { el.innerHTML = `<div style="color:var(--loss);font-size:0.85rem;">${e.message}</div>`; }
+}
+
+async function downloadBackup(e, filename) {
+  e.preventDefault();
+  // Fetch with auth header then trigger download
+  try {
+    const r = await fetch('/api/admin/backups/' + filename, {
+      headers: { 'Authorization': 'Bearer ' + authToken }
+    });
+    if (!r.ok) throw new Error('Download failed');
+    const blob = await r.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) { toast(e.message, 'error'); }
+  return false;
+}
+
+async function adminManualBackup() {
+  const btn = document.getElementById('admin-backup-btn');
+  btn.disabled = true; btn.textContent = 'Creating…';
+  try {
+    const r = await api('/api/admin/backups', 'POST');
+    toast('✓ ' + r.filename);
+    loadAdminBackups();
+  } catch(e) { toast(e.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = '+ Create Backup Now'; }
 }
 
 async function adminToggleActive(uid, currentlyActive) {
