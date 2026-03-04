@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: edh-vault
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DB_PATH
+        value: /data/edh.db
+    disk:
+      name: edh-data
+      mountPath: /data
+      sizeGB: 1
