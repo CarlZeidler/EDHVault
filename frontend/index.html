@@ -893,7 +893,7 @@ async function api(path, method='GET', body=null) {
   if (r.status === 401) {
     // Token invalid or expired — clear session and show login
     // Guard against recursive logout calls
-    if (authToken) logout();
+    if (authToken) logout('401 from ' + path);
     throw new Error('Session expired — please log in again');
   }
   if (!r.ok) {
@@ -949,37 +949,36 @@ async function authSubmit() {
 }
 
 async function onLoggedIn(skipVerify=false) {
-  // If restoring a stored session, verify the token is still valid first.
-  // This catches stale tokens from server restarts with a new JWT_SECRET.
+  // If restoring a stored session, verify the token against the server first.
   if (!skipVerify) {
     try {
+      console.log("[auth] Verifying stored token via /api/auth/me...");
       const me = await api('/api/auth/me');
-      // Update stored user data in case anything changed
       authUser = {username: me.username, is_admin: me.is_admin};
       saveAuth(authToken, authUser);
+      console.log("[auth] Token valid for:", authUser.username);
     } catch(e) {
-      // Token rejected — logout() was already called by api(), just return
-      return;
+      console.warn("[auth] Token verification failed:", e.message, "— showing login");
+      return; // logout() already called by api() on 401
     }
   }
+  console.log("[auth] Entering app as:", authUser?.username);
   document.getElementById('auth-screen').classList.add('hidden');
-  // Update user badge
   const u = authUser;
   const initials = (u.username||'?').slice(0,2).toUpperCase();
   const sbAvatar = document.getElementById('sb-avatar');
   const sbName   = document.getElementById('sb-username');
   if (sbAvatar) sbAvatar.textContent = initials;
   if (sbName)   sbName.textContent   = u.username;
-  // Show/hide admin nav items
   document.querySelectorAll('.admin-only').forEach(el => {
     el.style.display = u.is_admin ? '' : 'none';
   });
-  // Load initial page
   loadDash();
   setTimeout(initAllAC, 300);
 }
 
-function logout() {
+function logout(reason) {
+  console.log("[auth] logout() called:", reason || "user action");
   clearAuth();
   document.getElementById('auth-screen').classList.remove('hidden');
   document.getElementById('auth-user').value = '';
@@ -987,6 +986,8 @@ function logout() {
   document.getElementById('auth-error').classList.remove('visible');
   authTab('login');
 }
+
+
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
 function toast(msg,type='success'){

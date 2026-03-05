@@ -184,18 +184,32 @@ backup_db()
 
 # ── JWT ───────────────────────────────────────────────────────────────────────
 def make_token(user_id: int, username: str, is_admin: bool) -> str:
-    return jwt.encode({
-        "sub": user_id, "username": username, "admin": is_admin,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=JWT_EXP_H)
-    }, JWT_SECRET, algorithm=JWT_ALG)
+    now = datetime.datetime.now(datetime.timezone.utc)
+    payload = {
+        "sub": user_id,
+        "username": username,
+        "admin": is_admin,
+        "exp": now + datetime.timedelta(hours=JWT_EXP_H),
+        "iat": now,  # issued-at, helps with debugging
+    }
+    token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALG)
+    # PyJWT 2.x returns str; older versions returned bytes — normalise just in case
+    return token if isinstance(token, str) else token.decode("utf-8")
 
 def decode_token(token: str) -> dict:
     try:
-        return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALG])
+        return jwt.decode(
+            token,
+            JWT_SECRET,
+            algorithms=[JWT_ALG],
+            leeway=datetime.timedelta(seconds=30),  # tolerate minor clock skew
+        )
     except jwt.ExpiredSignatureError:
         raise HTTPException(401, "Token expired — please log in again")
-    except Exception:
-        raise HTTPException(401, "Invalid token")
+    except jwt.InvalidTokenError as e:
+        raise HTTPException(401, f"Invalid token: {e}")
+    except Exception as e:
+        raise HTTPException(401, f"Auth error: {e}")
 
 def current_user(creds: HTTPAuthorizationCredentials = Depends(bearer)) -> dict:
     if not creds:
