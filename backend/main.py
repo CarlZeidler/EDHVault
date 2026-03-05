@@ -12,6 +12,13 @@ log = logging.getLogger("edh-vault")
 app = FastAPI(title="EDH Vault API")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    """Catch unhandled exceptions and return 500 with a log — never 401."""
+    from fastapi.responses import JSONResponse
+    log.error(f"Unhandled exception on {request.url.path}: {exc}", exc_info=True)
+    return JSONResponse(status_code=500, content={"detail": str(exc)})
+
 DB_PATH    = os.environ.get("DB_PATH", os.path.join(os.path.dirname(__file__), "edh.db"))
 JWT_SECRET = os.environ.get("JWT_SECRET", "change-this-in-production-please")
 JWT_ALG    = "HS256"
@@ -113,14 +120,34 @@ init_db()
 #     create new column → copy data → leave old column (SQLite can't drop columns
 #     directly without recreating the whole table).
 MIGRATIONS: List[str] = [
-    # v1: baseline schema established by init_db(). No-op, just records the version.
+    # v1: baseline schema — no-op, just establishes the version baseline.
     "SELECT 1",
 
-    # ── Append new migrations below. Never edit lines above this comment. ──────
-    # Example (remove leading # to activate):
-    # "ALTER TABLE decks ADD COLUMN format TEXT DEFAULT 'Commander'",
-    # "ALTER TABLE games ADD COLUMN pod_size INTEGER",
-    # "CREATE INDEX IF NOT EXISTS idx_games_user_date ON games(user_id, date)",
+    # v2: add user_id to decks (for databases created before auth was added).
+    #     DEFAULT 1 assigns all pre-existing decks to the first user (admin).
+    #     Idempotent: IF NOT EXISTS guard via try/except in run_migrations.
+    "ALTER TABLE decks ADD COLUMN user_id INTEGER NOT NULL DEFAULT 1 REFERENCES users(id)",
+
+    # v3: add user_id to games
+    "ALTER TABLE games ADD COLUMN user_id INTEGER NOT NULL DEFAULT 1 REFERENCES users(id)",
+
+    # v4: add user_id to opponents
+    "ALTER TABLE opponents ADD COLUMN user_id INTEGER NOT NULL DEFAULT 1 REFERENCES users(id)",
+
+    # v5: relax the old UNIQUE constraint on opponents.name (now unique per user)
+    #     SQLite can't drop constraints directly, so we rebuild the table.
+    """CREATE TABLE IF NOT EXISTS opponents_new (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        name        TEXT NOT NULL,
+        commander   TEXT, colors TEXT, archetype TEXT, power_level INTEGER, notes TEXT,
+        UNIQUE(user_id, name)
+    );
+    INSERT OR IGNORE INTO opponents_new SELECT id,user_id,name,commander,colors,archetype,power_level,notes FROM opponents;
+    DROP TABLE opponents;
+    ALTER TABLE opponents_new RENAME TO opponents""",
+
+    # ── Append new migrations below this line. Never edit lines above. ─────────
 ]
 
 def run_migrations():
@@ -138,10 +165,26 @@ def run_migrations():
             return
         for version, sql in pending:
             log.info(f"Applying migration v{version}: {sql[:80]}")
-            c.execute(sql)
-            c.execute("INSERT INTO schema_version (version) VALUES (?)", (version,))
-        c.commit()
-        log.info(f"Migrations done: v{current} → v{version}")
+            try:
+                # Use executescript for multi-statement migrations (contains ";")
+                if ";" in sql.strip().rstrip(";"):
+                    c.executescript(sql)
+                else:
+                    c.execute(sql)
+                c.execute("INSERT OR IGNORE INTO schema_version (version) VALUES (?)", (version,))
+                c.commit()
+                log.info(f"Migration v{version} applied")
+            except Exception as e:
+                err = str(e).lower()
+                if "duplicate column" in err or "already exists" in err:
+                    # Column already present — mark as done and continue
+                    log.info(f"Migration v{version} skipped (already applied): {e}")
+                    c.execute("INSERT OR IGNORE INTO schema_version (version) VALUES (?)", (version,))
+                    c.commit()
+                else:
+                    log.error(f"Migration v{version} FAILED: {e}")
+                    raise
+        log.info(f"Migrations complete: now at v{max(v for v,_ in pending)}")
 
 # ── Backups ───────────────────────────────────────────────────────────────────
 # BACKUP_DIR: where backups are written. On Render with a persistent disk,
